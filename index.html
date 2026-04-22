@@ -172,50 +172,19 @@ nav{
 /* Hero right: NFT mosaic */
 .hero-visual{
   position:relative;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:stretch;justify-content:stretch;
   overflow:hidden;
   background:linear-gradient(135deg,#0a0c10 0%,#070810 100%);
   border-left:1px solid var(--border);
 }
-
-/* Large feature image + floating cards */
 .hero-main-img{
-  width:340px;height:340px;
-  object-fit:cover;border-radius:16px;
-  border:2px solid rgba(245,197,24,0.3);
-  box-shadow:0 0 60px rgba(245,197,24,0.15),0 30px 80px rgba(0,0,0,0.6);
-  position:relative;z-index:3;
+  width:100%;height:100%;
+  object-fit:cover;
+  object-position:center top;
+  display:block;
+  transition:transform .4s ease;
 }
-.float-card{
-  position:absolute;
-  border-radius:12px;overflow:hidden;
-  border:2px solid rgba(255,255,255,.1);
-  box-shadow:0 16px 48px rgba(0,0,0,0.6);
-  z-index:4;
-}
-.float-card img{width:100%;height:100%;object-fit:cover;display:block;}
-.fc1{width:120px;height:120px;top:14%;left:5%;animation:floatA 6s ease-in-out infinite;}
-.fc2{width:100px;height:100px;top:12%;right:6%;animation:floatB 7s ease-in-out infinite;}
-.fc3{width:110px;height:110px;bottom:18%;left:7%;animation:floatA 5s ease-in-out 1s infinite;}
-.fc4{width:105px;height:105px;bottom:16%;right:5%;animation:floatB 8s ease-in-out .5s infinite;}
-.fc5{width:90px;height:90px;top:50%;left:-2%;transform:translateY(-50%);animation:floatA 9s ease-in-out 2s infinite;}
-
-/* gold ring decoration */
-.hero-ring{
-  position:absolute;width:420px;height:420px;border-radius:50%;
-  border:1px solid rgba(245,197,24,0.08);z-index:1;
-}
-.hero-ring2{
-  position:absolute;width:560px;height:560px;border-radius:50%;
-  border:1px solid rgba(0,212,255,0.05);z-index:1;
-}
-/* Doge coin watermark */
-.hero-doge-wm{
-  position:absolute;right:-30px;top:50%;transform:translateY(-50%);
-  font-family:'Arial Black',sans-serif;font-weight:900;
-  font-size:320px;color:rgba(245,197,24,0.03);
-  line-height:1;pointer-events:none;user-select:none;z-index:0;
-}
+.hero-main-img:hover{transform:scale(1.02);}
 
 @keyframes floatA{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(2deg)}}
 @keyframes floatB{0%,100%{transform:translateY(0) rotate(3deg)}50%{transform:translateY(-10px) rotate(-3deg)}}
@@ -223,7 +192,7 @@ nav{
 
 /* ─── BANNER ─── */
 .banner-wrap{position:relative;overflow:hidden;}
-.banner-wrap img{width:100%;max-height:340px;object-fit:cover;object-position:top;display:block;}
+.banner-wrap img{width:100%;height:auto;display:block;object-fit:unset;}
 .banner-overlay{
   position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(7,8,10,.7) 0%,transparent 40%,transparent 60%,rgba(7,8,10,.7) 100%);
@@ -374,12 +343,12 @@ section{padding:100px 6%;}
     radial-gradient(ellipse 50% 60% at 50% 100%,rgba(245,197,24,0.05) 0%,transparent 60%);
 }
 .buy-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1;}
-.buy-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:64px;}
+.buy-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-bottom:64px;}
 .buy-head-img{
-  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
 }
-.buy-head-img img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--border);}
-.buy-head-img img:first-child{grid-column:1/3;height:200px;aspect-ratio:auto;}
+.buy-head-img img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--border);transition:transform .3s;display:block;}
+.buy-head-img img:hover{transform:scale(1.04);}
 
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden;}
 .step{
@@ -574,15 +543,7 @@ footer{
   </div>
 
   <div class="hero-visual">
-    <div class="hero-doge-wm">Ð</div>
-    <div class="hero-ring"></div>
-    <div class="hero-ring2"></div>
-    <img src="vic_1848.jpg" alt="Victor Fepe" class="hero-main-img"/>
-    <div class="float-card fc1"><img src="bob_120.png" alt="Bob Fepe"/></div>
-    <div class="float-card fc2"><img src="vic_827.png" alt="Victor Fepe"/></div>
-    <div class="float-card fc3"><img src="bob_56.png" alt="Bob Fepe"/></div>
-    <div class="float-card fc4"><img src="vic_635.png" alt="Victor Fepe"/></div>
-    <div class="float-card fc5"><img src="bob_200.png" alt="Bob Fepe"/></div>
+    <img src="bob_1.png" alt="Bob Fepe #1" class="hero-main-img"/>
   </div>
 </section>
 
@@ -703,12 +664,20 @@ footer{
     <div class="g-cell"><img src="vic_3.jpg" alt=""/><div class="g-label">#3 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_42.png" alt=""/><div class="g-label">#42 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_156.jpg" alt=""/><div class="g-label">#156 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_213.jpg" alt=""/><div class="g-label">#213 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_294.jpg" alt=""/><div class="g-label">#294 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_301.jpg" alt=""/><div class="g-label">#301 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_420.jpg" alt=""/><div class="g-label">#420 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_421.jpg" alt=""/><div class="g-label">#421 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_635.png" alt=""/><div class="g-label">#635 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_827.png" alt=""/><div class="g-label">#827 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_903.png" alt=""/><div class="g-label">#903 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_911.png" alt=""/><div class="g-label">#911 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_1021.png" alt=""/><div class="g-label">#1021 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1070.png" alt=""/><div class="g-label">#1070 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_1184.png" alt=""/><div class="g-label">#1184 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_1189.jpg" alt=""/><div class="g-label">#1189 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1386.jpg" alt=""/><div class="g-label">#1386 — Victor Fepe</div></div>
     <div class="g-cell"><img src="vic_1848.jpg" alt=""/><div class="g-label">#1848 — Victor Fepe</div></div>
   </div>
 
@@ -727,10 +696,10 @@ footer{
         <p class="sec-body">New to Doginals? No problem. Follow these four steps and you'll own a piece of the Dogecoin blockchain in minutes.</p>
       </div>
       <div class="buy-head-img">
-        <img src="vic_1848.jpg" alt=""/>
-        <img src="bob_120.png" alt=""/>
-        <img src="vic_827.png" alt=""/>
-        <img src="bob_56.png" alt=""/>
+        <img src="bob_120.png" alt="Bob Fepe"/>
+        <img src="vic_1848.jpg" alt="Victor Fepe"/>
+        <img src="bob_56.png" alt="Bob Fepe"/>
+        <img src="vic_827.png" alt="Victor Fepe"/>
       </div>
     </div>
 
@@ -769,13 +738,13 @@ footer{
   </div>
 </section>
 
+
+
 <!-- ABOUT -->
 <section id="about">
   <div class="about-grid">
-    <div class="about-imgs reveal">
-      <img src="bob_435.png" alt="Bob Fepe"/>
-      <img src="vic_911.png" alt="Victor Fepe"/>
-      <img src="bob_265.png" alt="Bob Fepe"/>
+    <div class="reveal" style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
+      <img src="vic_827.png" alt="Victor Fepe #827" style="width:100%;height:100%;object-fit:cover;display:block;"/>
     </div>
     <div class="about-text reveal">
       <p class="sec-label">What are Doginals?</p>
@@ -799,7 +768,7 @@ footer{
       <p class="sec-label">FAQ</p>
       <h2 class="sec-title">GOT <span class="g">QUESTIONS?</span></h2>
       <p class="sec-body">Everything you need to know about DoginalsFepe and the Doginals ecosystem.</p>
-      <img src="vic_1184.png" alt="Victor Fepe" style="margin-top:32px;"/>
+      <img src="bob_226.png" alt="Bob Fepe #226" style="margin-top:32px;"/>
     </div>
     <div class="faq-list reveal">
       <div class="faq-item">

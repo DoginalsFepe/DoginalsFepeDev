@@ -176,7 +176,7 @@ nav{
   overflow:hidden;
   background:linear-gradient(135deg,#0a0c10 0%,#070810 100%);
   border-left:1px solid var(--border);
-  padding:40px;
+  padding:24px;
 }
 /* radial glow behind image */
 .hero-visual::before{
@@ -186,8 +186,8 @@ nav{
   pointer-events:none;
 }
 .hero-main-img{
-  width:70%;
-  max-width:420px;
+  width:90%;
+  max-width:600px;
   height:auto;
   object-fit:contain;
   display:block;
@@ -224,11 +224,11 @@ nav{
 @keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── BANNER ─── */
-.banner-wrap{position:relative;overflow:hidden;}
-.banner-wrap img{width:100%;max-height:420px;object-fit:cover;object-position:top;display:block;}
+.banner-wrap{position:relative;overflow:hidden;background:#000;display:flex;justify-content:center;padding:0 5%;}
+.banner-wrap img{width:auto;max-width:100%;height:auto;display:block;object-fit:unset;}
 .banner-overlay{
   position:absolute;inset:0;
-  background:linear-gradient(90deg,rgba(7,8,10,.7) 0%,transparent 40%,transparent 60%,rgba(7,8,10,.7) 100%);
+  background:linear-gradient(90deg,rgba(7,8,10,.5) 0%,transparent 10%,transparent 90%,rgba(7,8,10,.5) 100%);
 }
 
 /* ─── TICKER ─── */
@@ -329,7 +329,7 @@ section{padding:100px 6%;}
 .gallery-head{margin-bottom:48px;text-align:center;}
 .gallery-head .sec-body{margin-top:10px;max-width:500px;margin-left:auto;margin-right:auto;}
 
-.tab-row{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;}
+.tab-row{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;margin-left:auto;margin-right:auto;}
 .tab-btn{
   font-family:'Bangers',cursive;font-size:1.2rem;letter-spacing:2px;
   padding:10px 32px;cursor:pointer;border:none;background:transparent;
@@ -339,7 +339,7 @@ section{padding:100px 6%;}
 .tab-btn.active-vic{background:var(--cyan);color:#000;}
 .tab-btn:not(.active-bob):not(.active-vic):hover{background:rgba(255,255,255,.05);color:var(--white);}
 
-.g-grid{display:none;grid-template-columns:repeat(6,1fr);gap:10px;max-width:1280px;}
+.g-grid{display:none;grid-template-columns:repeat(6,1fr);gap:10px;max-width:1280px;margin-left:auto;margin-right:auto;}
 .g-grid.show{display:grid;}
 .g-cell{
   aspect-ratio:1;border-radius:10px;overflow:hidden;
@@ -363,7 +363,7 @@ section{padding:100px 6%;}
 #bob-grid .g-cell:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(245,197,24,.25);}
 #vic-grid .g-cell:hover{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,212,255,.25);}
 
-.gallery-cta{margin-top:40px;}
+.gallery-cta{margin-top:40px;text-align:center;}
 
 /* ─── HOW TO BUY ─── */
 #buy{
@@ -538,6 +538,7 @@ footer{
     <li><a href="#buy">How to Buy</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#faq">FAQ</a></li>
+    <li><a href="https://medium.com/@doginalsfepe/an-introduction-to-doginals-923aa5eea2c6" target="_blank">Article</a></li>
   </ul>
   <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="nav-cta">Buy Now</a>
 </nav>
@@ -743,20 +744,19 @@ footer{
         <div class="step-n">01</div>
         <span class="step-icon">🦊</span>
         <div class="step-title">Get a Wallet</div>
-        <p class="step-desc">Download the <strong style="color:var(--light)">Doge Labs Wallet</strong> browser extension to hold and manage your Doginals securely.</p>
-        <a href="https://chrome.google.com/webstore" target="_blank" class="step-link">Download Wallet ↗</a>
+        <p class="step-desc">Import or Create a web wallet in Doggy.Market, remember to write down your seed phrase and keep in a safe place.</p>
       </div>
       <div class="step">
         <div class="step-n">02</div>
         <span class="step-icon">Ð</span>
         <div class="step-title">Get DOGE</div>
-        <p class="step-desc">Buy Dogecoin on Binance, Coinbase, or Kraken. Send it to your Doge Labs Wallet address.</p>
+        <p class="step-desc">Buy Dogecoin on Binance, Coinbase, or Kraken. Send it to your wallet.</p>
       </div>
       <div class="step">
         <div class="step-n">03</div>
         <span class="step-icon">🛒</span>
         <div class="step-title">Visit Doggy Market</div>
-        <p class="step-desc">Head to the official DoginalsFepe listing on Doggy Market — the premier Doginals marketplace.</p>
+        <p class="step-desc">Head to the official DoginalsFepe listing on Doggy Market — the leading Doginals marketplace.</p>
         <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="step-link">Open Marketplace ↗</a>
       </div>
       <div class="step">
@@ -894,7 +894,7 @@ footer{
     </div>
   </div>
   <div class="foot-bottom">
-    <p class="foot-copy">© 2024 DoginalsFepe · <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Doggy Market</a> · Not financial advice</p>
+    <p class="foot-copy">© 2023 DoginalsFepe · <a href="https://dogecoin.com" target="_blank">Dogecoin</a> · Not financial advice</p>
     <div class="foot-doge">Ð TO THE MOON</div>
   </div>
 </footer>

@@ -299,7 +299,7 @@ const INSCRIPTION_IDS = ["74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6c
 const COLLECTION = INSCRIPTION_IDS.map((id, i) => ({
   num: i + 1,
   id: id,
-  imgUrl: `https://doggy.market/api/inscription/image/${id}`,
+  imgUrl: `https://cdn.doggy.market/content/${id}`,
   marketUrl: `https://doggy.market/inscription/${id}`
 }));
 
@@ -357,7 +357,7 @@ function render() {
           alt="DoginalsFepe #${item.num}"
           loading="lazy"
           onload="this.classList.add('loaded')"
-          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%230f1118\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' fill=\'%23445566\' font-size=\'14\'%3E#${item.num}%3C/text%3E%3C/svg%3E'"
+          onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://cdn.doggy.market/content/${item.id}';}else{this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%230f1118\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' fill=\'%23F5C518\' font-size=\'18\'%3E%23${item.num}%3C/text%3E%3C/svg%3E';this.classList.add('loaded');}"
         />
       </div>
       <div class="nft-info">

@@ -325,17 +325,20 @@ const LOCAL_BOB = [1,5,8,24,29,56,104,120,126,141,200,226,265,393,405,409,435,50
 const LOCAL_VIC = [3,42,156,213,294,301,420,421,635,827,903,911,1021,1070,1184,1189,1386,1848];
 
 function getImageHTML(num, id){
-  // Check if we have local image
+  // Use local image if available
   if(LOCAL_BOB.includes(num)){
-    return `<img src="bob_${num}.png" alt="FEPE #${num}" onerror="this.parentNode.innerHTML=getFrogPlaceholder(${num})"/>`;
+    return `<img src="bob_${num}.png" alt="FEPE #${num}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://cdn.doggy.market/content/${id}';"/>`;
   }
   if(LOCAL_VIC.includes(num)){
-    // victor images can be jpg or png
-    const ext = [1189,1848,156,213,294,301,420,421,1386].includes(num) ? 'jpg' : 'png';
-    return `<img src="vic_${num}.${ext}" alt="FEPE #${num}" onerror="this.parentNode.innerHTML=getFrogPlaceholder(${num})"/>`;
+    const ext=[1189,1848,156,213,294,301,420,421,1386].includes(num)?'jpg':'png';
+    return `<img src="vic_${num}.${ext}" alt="FEPE #${num}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://cdn.doggy.market/content/${id}';"/>`;
   }
-  // No local image - show styled placeholder
-  return getFrogPlaceholder(num);
+  // Try CDN directly for all others
+  return `<img src="https://cdn.doggy.market/content/${id}" alt="FEPE #${num}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.parentNode.innerHTML='${getFrogPlaceholderStr(num)}'"/>`;
+}
+
+function getFrogPlaceholderStr(num){
+  return `<div class=\\"placeholder\\"><div class=\\"frog\\">🐸</div><div class=\\"pnum\\">#${num}</div></div>`;
 }
 
 function getFrogPlaceholder(num){

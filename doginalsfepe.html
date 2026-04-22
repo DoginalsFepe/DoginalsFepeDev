@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DoginalsFepe — Sub100K Doginals on Dogecoin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --gold:#F5C518;
+  --gold2:#FFD84D;
+  --gold-dim:#C49B00;
+  --cyan:#00D4FF;
+  --cyan2:#00FFEA;
+  --cyan-dim:#0099BB;
+  --bg:#07080A;
+  --bg2:#0C0E12;
+  --bg3:#111520;
+  --card:#0F1118;
+  --border:rgba(255,255,255,0.07);
+  --white:#FFFFFF;
+  --grey:#8899AA;
+  --light:#C8D8E8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px;}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;width:100%;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 6%;height:68px;
+  background:rgba(7,8,10,0.95);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(245,197,24,0.2);
+}
+.nav-logo{
+  font-family:'Bangers',cursive;
+  font-size:1.75rem;letter-spacing:3px;
+  text-decoration:none;display:flex;align-items:center;gap:10px;
+}
+.nav-logo .doge-coin{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Arial Black',sans-serif;font-weight:900;font-size:1rem;color:#1a0d00;
+  box-shadow:0 0 16px rgba(245,197,24,0.4);
+  flex-shrink:0;
+}
+.nav-logo .logo-text .d1{color:var(--white);}
+.nav-logo .logo-text .d2{color:var(--gold);}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{color:var(--grey);text-decoration:none;font-weight:600;font-size:.875rem;letter-spacing:.5px;transition:color .2s;}
+.nav-links a:hover{color:var(--white);}
+.nav-cta{
+  font-family:'Bangers',cursive;font-size:1.1rem;letter-spacing:2px;
+  padding:9px 24px;border-radius:8px;border:2px solid var(--gold);
+  color:var(--gold);text-decoration:none;background:transparent;cursor:pointer;
+  transition:all .2s;
+}
+.nav-cta:hover{background:var(--gold);color:#000;}
+
+/* ─── HERO ─── */
+#hero{
+  min-height:100vh;padding-top:68px;
+  display:grid;grid-template-columns:1fr 1fr;
+  position:relative;overflow:hidden;
+  background:var(--bg);
+}
+
+/* subtle grid lines like Dogecoin.com */
+#hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(245,197,24,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(245,197,24,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+}
+
+/* Gold gradient radials */
+#hero::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 50% 60% at 10% 50%,rgba(245,197,24,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 70% at 85% 50%,rgba(0,212,255,0.05) 0%,transparent 60%);
+  pointer-events:none;
+}
+
+.hero-text{
+  padding:80px 8% 80px 8%;
+  display:flex;flex-direction:column;justify-content:center;
+  position:relative;z-index:2;
+}
+
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(245,197,24,0.08);
+  border:1px solid rgba(245,197,24,0.3);
+  border-radius:6px;padding:6px 14px;
+  font-size:.75rem;font-weight:700;letter-spacing:2px;
+  color:var(--gold);text-transform:uppercase;
+  margin-bottom:28px;width:fit-content;
+  animation:up .7s ease .1s both;
+}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero-h1{
+  font-family:'Bangers',cursive;
+  font-size:clamp(4rem,8vw,7.5rem);
+  line-height:.88;letter-spacing:4px;
+  margin-bottom:24px;
+  animation:up .7s ease .25s both;
+}
+.hero-h1 .row1{display:block;color:var(--white);}
+.hero-h1 .row2{
+  display:block;
+  background:linear-gradient(90deg,var(--gold),var(--gold2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+.hero-desc{
+  font-size:1.05rem;color:var(--light);line-height:1.75;
+  max-width:460px;margin-bottom:36px;
+  animation:up .7s ease .4s both;
+}
+.hero-desc strong{color:var(--white);}
+
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;animation:up .7s ease .5s both;}
+.pill{
+  font-size:.75rem;font-weight:700;letter-spacing:1px;
+  padding:5px 14px;border-radius:4px;
+  border:1px solid var(--border);color:var(--grey);
+  background:rgba(255,255,255,.03);
+}
+.pill.gold{border-color:rgba(245,197,24,.35);color:var(--gold);background:rgba(245,197,24,.06);}
+.pill.cyan{border-color:rgba(0,212,255,.35);color:var(--cyan);background:rgba(0,212,255,.06);}
+
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;animation:up .7s ease .6s both;}
+.btn{
+  font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:2px;
+  padding:14px 36px;border-radius:8px;
+  text-decoration:none;display:inline-block;
+  transition:transform .15s,box-shadow .15s;border:none;cursor:pointer;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn-gold{
+  background:var(--gold);color:#000;
+  box-shadow:0 4px 0 var(--gold-dim),0 8px 30px rgba(245,197,24,.3);
+}
+.btn-gold:hover{box-shadow:0 6px 0 var(--gold-dim),0 14px 40px rgba(245,197,24,.4);}
+.btn-ghost{
+  background:transparent;color:var(--white);
+  border:2px solid rgba(255,255,255,.2);
+}
+.btn-ghost:hover{border-color:var(--white);background:rgba(255,255,255,.05);}
+
+.hero-stats{
+  display:flex;gap:32px;margin-top:48px;
+  padding-top:40px;border-top:1px solid var(--border);
+  animation:up .7s ease .75s both;
+}
+.hs{text-align:left;}
+.hs-n{font-family:'Bangers',cursive;font-size:2rem;color:var(--gold);display:block;line-height:1.1;}
+.hs-l{font-size:.7rem;color:var(--grey);letter-spacing:2px;text-transform:uppercase;margin-top:2px;display:block;}
+
+/* Hero right: NFT mosaic */
+.hero-visual{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:linear-gradient(135deg,#0a0c10 0%,#070810 100%);
+  border-left:1px solid var(--border);
+  padding:24px;
+}
+/* radial glow behind image */
+.hero-visual::before{
+  content:'';position:absolute;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,197,24,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-main-img{
+  width:90%;
+  max-width:600px;
+  height:auto;
+  object-fit:contain;
+  display:block;
+  border-radius:24px;
+  border:2px solid rgba(245,197,24,0.25);
+  box-shadow:
+    0 0 0 6px rgba(245,197,24,0.05),
+    0 30px 80px rgba(0,0,0,0.6),
+    0 0 60px rgba(245,197,24,0.1);
+  animation:heroPopIn 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.3s both, heroFloat 6s ease-in-out 1.2s infinite;
+  transform-origin:center bottom;
+  cursor:pointer;
+  transition:box-shadow .3s;
+}
+.hero-main-img:hover{
+  box-shadow:
+    0 0 0 6px rgba(245,197,24,0.12),
+    0 40px 100px rgba(0,0,0,0.7),
+    0 0 80px rgba(245,197,24,0.2);
+}
+@keyframes heroPopIn{
+  0%{opacity:0;transform:scale(0.6) translateY(40px) rotate(-4deg);}
+  60%{transform:scale(1.06) translateY(-8px) rotate(1deg);}
+  80%{transform:scale(0.97) translateY(3px) rotate(-0.5deg);}
+  100%{opacity:1;transform:scale(1) translateY(0) rotate(0deg);}
+}
+@keyframes heroFloat{
+  0%,100%{transform:translateY(0) rotate(-0.5deg);}
+  50%{transform:translateY(-16px) rotate(0.5deg);}
+}
+
+@keyframes floatA{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(2deg)}}
+@keyframes floatB{0%,100%{transform:translateY(0) rotate(3deg)}50%{transform:translateY(-10px) rotate(-3deg)}}
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── BANNER ─── */
+.banner-wrap{position:relative;overflow:hidden;background:#000;display:flex;justify-content:center;padding:0 5%;}
+.banner-wrap img{width:auto;max-width:100%;height:auto;display:block;object-fit:unset;}
+.banner-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(7,8,10,.5) 0%,transparent 10%,transparent 90%,rgba(7,8,10,.5) 100%);
+}
+
+/* ─── TICKER ─── */
+.ticker{overflow:hidden;background:var(--gold);padding:12px 0;}
+.ticker-track{display:inline-block;white-space:nowrap;animation:tick 30s linear infinite;}
+.ticker-track span{
+  font-family:'Bangers',cursive;font-size:1rem;letter-spacing:3px;
+  color:#000;margin:0 28px;
+}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ─── SECTION BASES ─── */
+section{padding:100px 6%;}
+.sec-label{font-size:.75rem;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.sec-title{font-family:'Bangers',cursive;font-size:clamp(2.8rem,5vw,4.5rem);line-height:1;letter-spacing:2px;margin-bottom:18px;}
+.sec-title .g{color:var(--gold);}
+.sec-title .c{color:var(--cyan);}
+.sec-body{color:var(--grey);font-size:1rem;line-height:1.75;max-width:580px;}
+
+/* ─── CHARACTERS ─── */
+#characters{background:var(--bg2);position:relative;overflow:hidden;}
+#characters::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 40% 60% at 0% 50%,rgba(245,197,24,0.04) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at 100% 50%,rgba(0,212,255,0.04) 0%,transparent 60%);
+}
+.chars-head{text-align:center;margin-bottom:70px;position:relative;z-index:1;}
+.chars-head .sec-body{margin:0 auto;}
+
+.chars-wrap{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:2px;max-width:1280px;margin:0 auto;
+  position:relative;z-index:1;
+  border:1px solid var(--border);border-radius:20px;overflow:hidden;
+}
+
+/* Each character panel */
+.char-panel{
+  padding:0;position:relative;overflow:hidden;
+  background:var(--card);
+  transition:flex .5s ease;
+}
+.char-panel:first-child{border-right:1px solid var(--border);}
+
+/* Top image strip - 4 images in a row */
+.char-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;height:220px;overflow:hidden;
+}
+.char-strip img{
+  width:100%;height:100%;object-fit:cover;
+  filter:saturate(0.85);
+  transition:filter .4s,transform .4s;
+}
+.char-panel:hover .char-strip img{filter:saturate(1.1);}
+.char-strip img:hover{transform:scale(1.05);z-index:2;position:relative;}
+
+/* Featured image overlay on strip */
+.char-strip-overlay{
+  position:relative;
+}
+.char-strip-overlay::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:60px;
+  background:linear-gradient(0deg,var(--card),transparent);
+}
+
+/* Panel info */
+.char-info{padding:32px 36px 40px;}
+.char-num{
+  font-size:.72rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  margin-bottom:10px;display:block;
+}
+.bob-col .char-num{color:var(--gold);}
+.vic-col .char-num{color:var(--cyan);}
+
+.char-name{font-family:'Bangers',cursive;font-size:3.2rem;letter-spacing:3px;margin-bottom:14px;line-height:1;}
+.bob-col .char-name{color:var(--gold);}
+.vic-col .char-name{color:var(--cyan);}
+
+.char-desc{color:var(--grey);font-size:.95rem;line-height:1.75;margin-bottom:22px;}
+.char-desc strong{color:var(--light);}
+
+.char-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.ctag{font-size:.72rem;font-weight:700;letter-spacing:1px;padding:4px 12px;border-radius:4px;}
+.ctag-g{background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.25);color:var(--gold);}
+.ctag-c{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);color:var(--cyan);}
+
+/* Divider line on chars */
+.char-divider{
+  position:absolute;top:0;bottom:0;left:50%;width:2px;
+  background:linear-gradient(180deg,transparent,var(--gold) 30%,var(--cyan) 70%,transparent);
+  opacity:.2;pointer-events:none;z-index:5;
+}
+
+/* ─── GALLERY ─── */
+#gallery{background:var(--bg);}
+.gallery-head{margin-bottom:48px;text-align:center;}
+.gallery-head .sec-body{margin-top:10px;max-width:500px;margin-left:auto;margin-right:auto;}
+
+.tab-row{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;margin-left:auto;margin-right:auto;}
+.tab-btn{
+  font-family:'Bangers',cursive;font-size:1.2rem;letter-spacing:2px;
+  padding:10px 32px;cursor:pointer;border:none;background:transparent;
+  color:var(--grey);transition:all .2s;
+}
+.tab-btn.active-bob{background:var(--gold);color:#000;}
+.tab-btn.active-vic{background:var(--cyan);color:#000;}
+.tab-btn:not(.active-bob):not(.active-vic):hover{background:rgba(255,255,255,.05);color:var(--white);}
+
+.g-grid{display:none;grid-template-columns:repeat(6,1fr);gap:10px;max-width:1280px;margin-left:auto;margin-right:auto;}
+.g-grid.show{display:grid;}
+.g-cell{
+  aspect-ratio:1;border-radius:10px;overflow:hidden;
+  border:1px solid var(--border);position:relative;cursor:pointer;
+  transition:transform .3s,border-color .3s;
+}
+.g-cell:hover{transform:scale(1.06);z-index:3;}
+.g-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.g-cell:hover img{transform:scale(1.1);}
+.g-label{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:18px 8px 7px;
+  background:linear-gradient(0deg,rgba(0,0,0,.9),transparent);
+  font-family:'Bangers',cursive;font-size:.9rem;letter-spacing:1px;
+  opacity:0;transition:opacity .3s;
+  color:var(--white);
+}
+.g-cell:hover .g-label{opacity:1;}
+
+/* Bob hover gold, Victor hover cyan */
+#bob-grid .g-cell:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(245,197,24,.25);}
+#vic-grid .g-cell:hover{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,212,255,.25);}
+
+.gallery-cta{margin-top:40px;text-align:center;}
+
+/* ─── HOW TO BUY ─── */
+#buy{
+  background:var(--bg2);
+  position:relative;overflow:hidden;
+}
+#buy::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 50% 60% at 50% 100%,rgba(245,197,24,0.05) 0%,transparent 60%);
+}
+.buy-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1;}
+.buy-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-bottom:64px;}
+.buy-head-img{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.buy-head-img img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--border);transition:transform .3s;display:block;}
+.buy-head-img img:hover{transform:scale(1.04);}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden;}
+.step{
+  background:var(--card);padding:32px 24px 28px;
+  position:relative;
+  transition:background .2s;
+}
+.step:hover{background:#141824;}
+.step-n{
+  font-family:'Bangers',cursive;font-size:4rem;color:rgba(245,197,24,0.08);
+  position:absolute;top:16px;right:18px;line-height:1;
+}
+.step-icon{font-size:2.2rem;margin-bottom:16px;display:block;}
+.step-title{font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:1px;color:var(--gold);margin-bottom:10px;}
+.step-desc{color:var(--grey);font-size:.88rem;line-height:1.65;}
+.step-link{
+  display:inline-block;margin-top:14px;
+  color:var(--cyan);font-weight:700;font-size:.84rem;
+  text-decoration:none;opacity:.8;transition:opacity .2s;
+}
+.step-link:hover{opacity:1;}
+
+.buy-tip{
+  margin-top:48px;padding:24px 32px;
+  background:rgba(245,197,24,0.04);
+  border:1px solid rgba(245,197,24,0.15);
+  border-left:3px solid var(--gold);
+  border-radius:8px;
+  font-size:.92rem;color:var(--grey);line-height:1.7;
+}
+.buy-tip strong{color:var(--gold);}
+
+/* ─── ABOUT (blockchain facts strip) ─── */
+#about{
+  background:var(--bg3);
+  padding:80px 6%;
+}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1200px;margin:0 auto;}
+.about-imgs{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;}
+.about-imgs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--border);transition:transform .3s,border-color .3s;}
+.about-imgs img:first-child{grid-column:1/3;height:220px;aspect-ratio:auto;border-radius:14px;}
+.about-imgs img:hover{transform:scale(1.03);border-color:var(--gold);}
+.about-text{padding:10px 0;}
+.about-text .sec-body{margin-top:14px;margin-bottom:28px;}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px;}
+.fact{padding:18px 20px;background:var(--card);border-radius:10px;border:1px solid var(--border);}
+.fact-n{font-family:'Bangers',cursive;font-size:1.8rem;color:var(--gold);display:block;line-height:1.1;}
+.fact-l{font-size:.75rem;color:var(--grey);letter-spacing:1px;text-transform:uppercase;margin-top:4px;display:block;}
+
+/* ─── FAQ ─── */
+#faq{background:var(--bg);}
+.faq-inner{display:grid;grid-template-columns:1fr 2fr;gap:80px;max-width:1200px;margin:0 auto;align-items:start;}
+.faq-left{position:sticky;top:100px;}
+.faq-left .sec-body{margin-top:14px;margin-bottom:32px;}
+.faq-left img{width:100%;border-radius:16px;border:1px solid var(--border);}
+.faq-list{display:flex;flex-direction:column;gap:2px;}
+.faq-item{border-radius:0;border-bottom:1px solid var(--border);overflow:hidden;}
+.faq-item:first-child{border-top:1px solid var(--border);}
+.faq-q{
+  width:100%;background:none;border:none;cursor:pointer;text-align:left;
+  padding:20px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.faq-qt{font-weight:700;font-size:.97rem;color:var(--white);font-family:'Inter',sans-serif;}
+.faq-ch{
+  width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;color:var(--grey);transition:all .3s;flex-shrink:0;
+}
+.faq-item.open .faq-ch{border-color:var(--gold);color:var(--gold);transform:rotate(45deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;padding:0;color:var(--grey);font-size:.91rem;line-height:1.75;}
+.faq-item.open .faq-a{max-height:300px;padding-bottom:20px;}
+.faq-a a{color:var(--cyan);}
+
+/* ─── FOOTER ─── */
+footer{
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:64px 6% 36px;
+}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:60px;margin-bottom:56px;}
+.foot-brand{}
+.foot-logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:14px;text-decoration:none;}
+.foot-coin{width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Arial Black',sans-serif;font-weight:900;font-size:1.1rem;color:#1a0d00;}
+.foot-name{font-family:'Bangers',cursive;font-size:1.6rem;letter-spacing:3px;color:var(--white);}
+.foot-name span{color:var(--gold);}
+.foot-desc{color:var(--grey);font-size:.875rem;line-height:1.7;max-width:320px;margin-bottom:24px;}
+.foot-col h4{font-size:.75rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:18px;}
+.foot-col a{display:block;color:var(--light);text-decoration:none;font-size:.88rem;margin-bottom:12px;transition:color .2s;}
+.foot-col a:hover{color:var(--gold);}
+.socials{display:flex;gap:10px;flex-wrap:wrap;}
+.soc{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--light);font-weight:600;font-size:.82rem;
+  padding:8px 16px;border-radius:6px;text-decoration:none;
+  transition:border-color .2s,color .2s;
+}
+.soc:hover{border-color:var(--gold);color:var(--gold);}
+.foot-bottom{
+  padding-top:28px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.foot-copy{color:#445566;font-size:.78rem;}
+.foot-copy a{color:#556677;text-decoration:none;}
+.foot-doge{
+  font-family:'Arial Black',sans-serif;font-weight:900;
+  font-size:1.1rem;color:var(--gold);opacity:.4;letter-spacing:2px;
+}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1100px){
+  #hero{grid-template-columns:1fr;}
+  .hero-visual{display:none;}
+  .chars-wrap{grid-template-columns:1fr;}
+  .chars-wrap .char-panel:first-child{border-right:none;border-bottom:1px solid var(--border);}
+  .buy-head{grid-template-columns:1fr;}
+  .buy-head-img{display:none;}
+  .faq-inner{grid-template-columns:1fr;}
+  .faq-left{position:static;}
+  .faq-left img{max-width:300px;}
+  .about-grid{grid-template-columns:1fr;}
+  .foot-grid{grid-template-columns:1fr;}
+  .g-grid{grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:700px){
+  .nav-links{display:none;}
+  .steps{grid-template-columns:1fr 1fr;}
+  .g-grid{grid-template-columns:repeat(3,1fr);}
+  .hero-h1{font-size:3.5rem;}
+}
+@media(max-width:480px){
+  .steps{grid-template-columns:1fr;}
+  .g-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+/* scroll reveal */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="doge-coin">Ð</div>
+    <div class="logo-text">
+      <span class="d1">DOGINALS</span><span class="d2">FEPE</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#characters">Characters</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#buy">How to Buy</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="collection.html">Full Collection</a></li>
+    <li><a href="https://medium.com/@doginalsfepe/an-introduction-to-doginals-923aa5eea2c6" target="_blank">Article</a></li>
+  </ul>
+  <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="nav-cta">Buy Now</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-text">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      Sub-100K Doginals · Inscription #84K–95K
+    </div>
+    <h1 class="hero-h1">
+      <span class="row1">DOGINALS</span>
+      <span class="row2">FEPE</span>
+    </h1>
+    <p class="hero-desc">
+      <strong>4,049 Doginals Fepe</strong> permanently inscribed on the Dogecoin blockchain. Two iconic characters — Bob & Victor.<br/><br/>
+      There are less than 5 big collections under Sub100k. Doginals Fepe is one of the biggest Sub100k collections with 4,049 Inscriptions.<br/><br/>
+      Each Doginals Fepe is a Sub100k, making it a piece of history provenance in Dogecoin. Pure on-chain art, forever. Much wow.
+    </p>
+    <div class="hero-pills">
+      <span class="pill gold">🐸 4,049 Supply</span>
+      <span class="pill gold">⚡ Sub-100K Inscriptions</span>
+      <span class="pill cyan">🔒 100% On-Chain</span>
+      <span class="pill">Ð Dogecoin Blockchain</span>
+      <span class="pill">2 Characters</span>
+    </div>
+    <div class="hero-actions">
+      <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="btn btn-gold">🛒 Buy on Doggy Market</a>
+      <a href="#gallery" class="btn btn-ghost">View Gallery</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hs"><span class="hs-n">4,049</span><span class="hs-l">Total Supply</span></div>
+      <div class="hs"><span class="hs-n">Sub100K</span><span class="hs-l">Inscriptions</span></div>
+      <div class="hs"><span class="hs-n">2</span><span class="hs-l">Characters</span></div>
+      <div class="hs"><span class="hs-n">∞</span><span class="hs-l">On-Chain Forever</span></div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <img src="bob_1.png" alt="Bob Fepe #1" class="hero-main-img"/>
+  </div>
+</section>
+
+<!-- BANNER -->
+<div class="banner-wrap">
+  <img src="WebBanner5.jpg" alt="DoginalsFepe — Sub100K Doginals Frog Collection"/>
+  <div class="banner-overlay"></div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span>DOGINALS FEPE</span><span>·</span><span>SUB-100K DOGECOIN INSCRIPTIONS</span><span>·</span>
+    <span>BOB FEPE</span><span>·</span><span>VICTOR FEPE</span><span>·</span>
+    <span>4,049 UNIQUE FROGS</span><span>·</span><span>FOREVER ON-CHAIN</span><span>·</span>
+    <span>MUCH WOW</span><span>·</span><span>Ð DOGE TO THE MOON</span><span>·</span>
+    <span>DOGINALS FEPE</span><span>·</span><span>SUB-100K DOGECOIN INSCRIPTIONS</span><span>·</span>
+    <span>BOB FEPE</span><span>·</span><span>VICTOR FEPE</span><span>·</span>
+    <span>4,049 UNIQUE FROGS</span><span>·</span><span>FOREVER ON-CHAIN</span><span>·</span>
+    <span>MUCH WOW</span><span>·</span><span>Ð DOGE TO THE MOON</span><span>·</span>
+  </div>
+</div>
+
+<!-- CHARACTERS -->
+<section id="characters">
+  <div class="chars-head reveal">
+    <p class="sec-label" style="text-align:center">The Collection</p>
+    <h2 class="sec-title" style="text-align:center">TWO CHARACTERS.<br><span class="g">ONE LEGENDARY</span> <span class="c">COLLECTION.</span></h2>
+    <p class="sec-body" style="text-align:center;margin:0 auto;">DoginalsFepe features two distinct, iconic frog characters — each with their own world of traits, art styles, and energy. Together they make up one of the most unique collections on the Dogecoin blockchain.</p>
+  </div>
+
+  <div class="chars-wrap reveal">
+    <!-- BOB -->
+    <div class="char-panel bob-col">
+      <div class="char-strip-overlay">
+        <div class="char-strip">
+          <img src="bob_1.png" alt="Bob Fepe #1"/>
+          <img src="bob_126.png" alt="Bob Fepe #126"/>
+          <img src="bob_409.png" alt="Bob Fepe #409"/>
+          <img src="bob_200.png" alt="Bob Fepe #200"/>
+        </div>
+      </div>
+      <div class="char-info">
+        <span class="char-num">Character 01</span>
+        <h3 class="char-name">BOB FEPE</h3>
+        <p class="char-desc">The original, loveable frog. Bob is expressive, colourful, and always got something to say. Bright cartoon illustration style, vivid colour palettes, and a personality that hits — from wholesome to mischievous.</p>
+        <div class="char-tags">
+          <span class="ctag ctag-g">Cartoon Art Style</span>
+          <span class="ctag ctag-g">Vibrant Colours</span>
+          <span class="ctag ctag-g">Expressive Faces</span>
+          <span class="ctag ctag-g">Fun Accessories</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VICTOR -->
+    <div class="char-panel vic-col">
+      <div class="char-strip-overlay">
+        <div class="char-strip">
+          <img src="vic_1189.jpg" alt="Victor Fepe #1189"/>
+          <img src="vic_42.png" alt="Victor Fepe #42"/>
+          <img src="vic_911.png" alt="Victor Fepe #911"/>
+          <img src="vic_1021.png" alt="Victor Fepe #1021"/>
+        </div>
+      </div>
+      <div class="char-info">
+        <span class="char-num">Character 02</span>
+        <h3 class="char-name">VICTOR FEPE</h3>
+        <p class="char-desc">The young and dark cyberpunk. Victor is brooding, intense, and cinematic. Defined by a signature <strong>neon outline glow</strong>, glowing eyes, dark atmospheric backgrounds, and a street-level attitude that commands respect.</p>
+        <div class="char-tags">
+          <span class="ctag ctag-c">Cyberpunk / Dark Art</span>
+          <span class="ctag ctag-c">Neon Glow Outline</span>
+          <span class="ctag ctag-c">Glowing Eyes</span>
+          <span class="ctag ctag-c">Cinematic Depth</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="gallery-head reveal">
+    <p class="sec-label" style="text-align:center">The Art</p>
+    <h2 class="sec-title" style="text-align:center">MEET THE <span class="g">FEPES</span></h2>
+    <p class="sec-body" style="text-align:center">Every FEPE is permanently inscribed on the Dogecoin blockchain — no two are alike. Browse both characters below.</p>
+  </div>
+
+  <div class="tab-row reveal">
+    <button class="tab-btn active-bob" id="btn-bob" onclick="switchTab('bob')">Bob Fepe</button>
+    <button class="tab-btn" id="btn-vic" onclick="switchTab('vic')">Victor Fepe</button>
+  </div>
+
+  <!-- Bob grid -->
+  <div class="g-grid show" id="bob-grid">
+    <div class="g-cell"><img src="bob_1.png" alt=""/><div class="g-label">#1 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_5.png" alt=""/><div class="g-label">#5 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_8.png" alt=""/><div class="g-label">#8 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_24.png" alt=""/><div class="g-label">#24 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_29.png" alt=""/><div class="g-label">#29 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_56.png" alt=""/><div class="g-label">#56 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_104.png" alt=""/><div class="g-label">#104 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_120.png" alt=""/><div class="g-label">#120 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_126.png" alt=""/><div class="g-label">#126 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_141.png" alt=""/><div class="g-label">#141 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_200.png" alt=""/><div class="g-label">#200 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_226.png" alt=""/><div class="g-label">#226 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_265.png" alt=""/><div class="g-label">#265 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_393.png" alt=""/><div class="g-label">#393 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_405.png" alt=""/><div class="g-label">#405 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_409.png" alt=""/><div class="g-label">#409 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_435.png" alt=""/><div class="g-label">#435 — Bob Fepe</div></div>
+    <div class="g-cell"><img src="bob_503.png" alt=""/><div class="g-label">#503 — Bob Fepe</div></div>
+  </div>
+
+  <!-- Victor grid -->
+  <div class="g-grid" id="vic-grid">
+    <div class="g-cell"><img src="vic_3.jpg" alt=""/><div class="g-label">#3 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_42.png" alt=""/><div class="g-label">#42 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_156.jpg" alt=""/><div class="g-label">#156 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_213.jpg" alt=""/><div class="g-label">#213 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_294.jpg" alt=""/><div class="g-label">#294 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_301.jpg" alt=""/><div class="g-label">#301 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_420.jpg" alt=""/><div class="g-label">#420 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_421.jpg" alt=""/><div class="g-label">#421 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_635.png" alt=""/><div class="g-label">#635 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_827.png" alt=""/><div class="g-label">#827 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_903.png" alt=""/><div class="g-label">#903 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_911.png" alt=""/><div class="g-label">#911 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1021.png" alt=""/><div class="g-label">#1021 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1070.png" alt=""/><div class="g-label">#1070 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1184.png" alt=""/><div class="g-label">#1184 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1189.jpg" alt=""/><div class="g-label">#1189 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1386.jpg" alt=""/><div class="g-label">#1386 — Victor Fepe</div></div>
+    <div class="g-cell"><img src="vic_1848.jpg" alt=""/><div class="g-label">#1848 — Victor Fepe</div></div>
+  </div>
+
+  <div class="gallery-cta reveal">
+    <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="btn btn-gold">View Full Collection on Doggy Market →</a>
+  </div>
+</section>
+
+<!-- HOW TO BUY -->
+<section id="buy">
+  <div class="buy-inner">
+    <div class="buy-head reveal">
+      <div>
+        <p class="sec-label">Get Started</p>
+        <h2 class="sec-title">HOW TO <span class="g">BUY</span></h2>
+        <p class="sec-body">New to Doginals? No problem. Follow these four steps and you'll own a piece of the Dogecoin blockchain in minutes.</p>
+      </div>
+      <div class="buy-head-img">
+        <img src="bob_120.png" alt="Bob Fepe"/>
+        <img src="vic_42.png" alt="Victor Fepe"/>
+        <img src="bob_56.png" alt="Bob Fepe"/>
+        <img src="vic_1848.jpg" alt="Victor Fepe"/>
+      </div>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-n">01</div>
+        <span class="step-icon">🦊</span>
+        <div class="step-title">Get a Wallet</div>
+        <p class="step-desc">Import or Create a web wallet in Doggy.Market, remember to write down your seed phrase and keep in a safe place.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <span class="step-icon">Ð</span>
+        <div class="step-title">Get DOGE</div>
+        <p class="step-desc">Buy Dogecoin on Binance, Coinbase, or Kraken. Send it to your wallet.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <span class="step-icon">🛒</span>
+        <div class="step-title">Visit Doggy Market</div>
+        <p class="step-desc">Head to the official DoginalsFepe listing on Doggy Market — the leading Doginals marketplace.</p>
+        <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="step-link">Open Marketplace ↗</a>
+      </div>
+      <div class="step">
+        <div class="step-n">04</div>
+        <span class="step-icon">🐸</span>
+        <div class="step-title">Pick Your Fepe</div>
+        <p class="step-desc">Browse Bob or Victor, find the one that calls to you, and own it permanently on-chain.</p>
+      </div>
+    </div>
+
+    <div class="buy-tip reveal">
+      💡 <strong>Pro Tip:</strong> DoginalsFepe holds <strong>Sub-100K inscription numbers (84K–95K)</strong> — placing it among the earliest artifacts ever inscribed in the Doginals ecosystem. Low inscription numbers are recognized as historically significant and carry premium collector value.
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="reveal" style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
+      <img src="vic_827.png" alt="Victor Fepe #827" style="width:100%;height:100%;object-fit:cover;display:block;"/>
+    </div>
+    <div class="about-text reveal">
+      <p class="sec-label">What are Doginals?</p>
+      <h2 class="sec-title">INSCRIBED ON <span class="g">DOGECOIN</span><br><span class="c">FOREVER</span></h2>
+      <p class="sec-body">Doginals are Art or Digital Collectibles inscribed directly onto the Dogecoin blockchain — similar to Bitcoin Ordinals but built on DOGE. You are able to trade the Assets in Dogecoin.</p>
+      <p class="sec-body" style="margin-top:14px;">Each inscription embeds the image data permanently into a Dogecoin transaction. No external hosting. No IPFS. No censorship. Permissionless. Your FEPE lives on the blockchain forever.</p>
+      <p class="sec-body" style="margin-top:14px;">With <strong style="color:var(--white)">Sub-100K inscription numbers</strong>, Doginals Fepe is among the very first Digital Artifacts ever created in the Doginals ecosystem.</p>
+      <div class="facts">
+        <div class="fact"><span class="fact-n">4,049</span><span class="fact-l">Unique FEPEs</span></div>
+        <div class="fact"><span class="fact-n">Sub100K</span><span class="fact-l">Inscription Tier</span></div>
+        <div class="fact"><span class="fact-n">100%</span><span class="fact-l">On-Chain Storage</span></div>
+        <div class="fact"><span class="fact-n">2</span><span class="fact-l">Iconic Characters</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-inner">
+    <div class="faq-left reveal">
+      <p class="sec-label">FAQ</p>
+      <h2 class="sec-title">GOT <span class="g">QUESTIONS?</span></h2>
+      <p class="sec-body">Everything you need to know about DoginalsFepe and the Doginals ecosystem.</p>
+      <img src="bob_226.png" alt="Bob Fepe #226" style="margin-top:32px;"/>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">What are Doginals?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">Doginals are NFTs inscribed directly onto the Dogecoin blockchain — similar to Bitcoin Ordinals but built on DOGE. Each is permanently stored on-chain with no reliance on external servers or IPFS. Your FEPE frog lives on the blockchain forever.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">What is the difference between Bob Fepe and Victor Fepe?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">Bob Fepe is the bright, cartoonish, expressive character — vibrant colours, fun accessories, wholesome personality. Victor Fepe is the young and dark cyberpunk — defined by his neon outline glow, cinematic dark backgrounds, and intense glowing eyes. Together they make up the full 4,049 supply.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">How many DoginalsFepe NFTs exist?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">There are exactly <strong>4,049 unique DoginalsFepe frogs</strong> across both characters. The supply is fixed permanently on-chain and will never increase. Each FEPE has unique traits, colours, and accessories.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">What makes DoginalsFepe historically significant?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">DoginalsFepe holds Sub-100K inscription numbers (84K–95K) — placing it among the earliest artifacts ever inscribed in the Doginals ecosystem. In the Digital Collectibles world, low inscription number with Historical Provenance often widely recognised, which it carry more long-term collector value.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">Where can I buy a DoginalsFepe?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">Buy on <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Doggy Market</a> — the leading Doginals marketplace. You'll need to create a Wallet in Doggy.Market and some Dogecoins to complete a purchase.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">Why Dogecoin instead of Ethereum or Solana?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">Dogecoin offers ultra-low transaction fees, fast block times, and one of the most passionate and meme-native communities in crypto. Doginals combine the permanence of on-chain inscription with the legendary cultural energy of DOGE. The perfect home for frogs. Much wow.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-qt">How do I store my FEPE safely?</span>
+          <span class="faq-ch">+</span>
+        </button>
+        <div class="faq-a">Your FEPE is stored in your Wallet. Keep your seed phrase secure and never share it. Since Doginals are inscribed directly on-chain, your frog is secured by the Dogecoin blockchain itself — which has been running since 2013.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a href="#" class="foot-logo-wrap">
+        <div class="foot-coin">Ð</div>
+        <div class="foot-name">DOGINALS<span>FEPE</span></div>
+      </a>
+      <p class="foot-desc">4,049 unique frog NFTs permanently inscribed on the Dogecoin blockchain. Two characters. One legendary collection. Sub-100K inscription numbers. Much wow.</p>
+      <div class="socials">
+        <a href="https://twitter.com/DoginalsFepe" target="_blank" class="soc">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>
+          Twitter / X
+        </a>
+        <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="soc">🛒 Doggy Market</a>
+        <a href="https://discord.gg/doginalsfepe" target="_blank" class="soc">Discord</a>
+      </div>
+    </div>
+    <div class="foot-col">
+      <h4>Collection</h4>
+      <a href="#characters">Bob Fepe</a>
+      <a href="#characters">Victor Fepe</a>
+      <a href="#gallery">Gallery</a>
+      <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Buy on Doggy Market</a>
+    </div>
+    <div class="foot-col">
+      <h4>Resources</h4>
+      <a href="#buy">How to Buy</a>
+      <a href="#about">About Doginals</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://dogecoin.com" target="_blank">Dogecoin.com ↗</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <p class="foot-copy">© 2023 DoginalsFepe · <a href="https://dogecoin.com" target="_blank">Dogecoin</a> · Not financial advice</p>
+    <div class="foot-doge">Ð TO THE MOON</div>
+  </div>
+</footer>
+
+<script>
+// Tab switching
+function switchTab(tab){
+  document.getElementById('bob-grid').classList.remove('show');
+  document.getElementById('vic-grid').classList.remove('show');
+  document.getElementById('btn-bob').className='tab-btn';
+  document.getElementById('btn-vic').className='tab-btn';
+  if(tab==='bob'){
+    document.getElementById('bob-grid').classList.add('show');
+    document.getElementById('btn-bob').className='tab-btn active-bob';
+  } else {
+    document.getElementById('vic-grid').classList.add('show');
+    document.getElementById('btn-vic').className='tab-btn active-vic';
+  }
+}
+
+// FAQ
+function toggleFaq(btn){
+  const item=btn.closest('.faq-item');
+  const open=item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!open)item.classList.add('open');
+}
+
+// Scroll reveal
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('in');
+  });
+},{threshold:0.07});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

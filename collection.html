@@ -130,22 +130,24 @@ nav{
   box-shadow:0 12px 40px rgba(245,197,24,0.15);
 }
 
-/* Card image area - shows CDN image with frog emoji fallback */
+/* Card image area */
 .nft-img{
   width:100%;aspect-ratio:1;
-  background:linear-gradient(135deg,#0f1118,#161824);
-  display:flex;align-items:center;justify-content:center;
+  background:#0f1118;
+  display:block;
   position:relative;overflow:hidden;
 }
 .nft-img img{
   width:100%;height:100%;object-fit:cover;
   display:block;
   transition:transform .4s;
+  position:absolute;inset:0;
 }
 .nft-card:hover .nft-img img{transform:scale(1.06);}
 .nft-img .placeholder{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   width:100%;height:100%;gap:8px;
+  position:absolute;inset:0;
 }
 .nft-img .placeholder .frog{font-size:3.5rem;}
 .nft-img .placeholder .pnum{
@@ -249,7 +251,7 @@ footer a{color:var(--gold);text-decoration:none;}
 <div class="page-header">
   <p style="font-size:.8rem;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">Sub-100K Doginals · Inscription #84K–95K</p>
   <h1>FULL <span>COLLECTION</span></h1>
-  <p>All 4,049 DoginalsFepe — sorted by FEPE number #1 to #4,049. Click any card to view on Doggy Market.</p>
+  <p>All 4,049 DoginalsFepe — sorted by FEPE number #0 to #4,048. Click any card to view on Doggy Market.</p>
   <div class="header-stats">
     <div class="hstat"><span class="hstat-n">4,049</span><span class="hstat-l">Total Supply</span></div>
     <div class="hstat"><span class="hstat-n">Sub100K</span><span class="hstat-l">Inscriptions</span></div>
@@ -261,7 +263,7 @@ footer a{color:var(--gold);text-decoration:none;}
 <div class="controls">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Search e.g. #1, #42, #100..." oninput="handleSearch()"/>
+    <input type="text" id="searchInput" placeholder="Search e.g. #0, #42, #100..." oninput="handleSearch()"/>
   </div>
   <div class="controls-right">
     <span class="count-badge" id="countBadge">4,049 FEPEs</span>
@@ -305,7 +307,8 @@ function handleSearch(){
   } else {
     const n=parseInt(q);
     if(!isNaN(n)){
-      filtered=COLLECTION.filter(f=>f.num===n);
+      // user types 0-based number, collection is 1-based internally
+      filtered=COLLECTION.filter(f=>f.num===n+1);
     } else {
       filtered=COLLECTION.filter(f=>f.id.includes(q));
     }
@@ -321,28 +324,9 @@ function changePerPage(){
 }
 
 // Bob images available locally (from your GitHub)
-const LOCAL_BOB = [1,5,8,24,29,56,104,120,126,141,200,226,265,393,405,409,435,503];
-const LOCAL_VIC = [3,42,156,213,294,301,420,421,635,827,903,911,1021,1070,1184,1189,1386,1848];
-
 function getImageHTML(num, id){
-  // Use local image if available
-  if(LOCAL_BOB.includes(num)){
-    return `<img src="bob_${num}.png" alt="FEPE #${num}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://cdn.doggy.market/content/${id}';"/>`;
-  }
-  if(LOCAL_VIC.includes(num)){
-    const ext=[1189,1848,156,213,294,301,420,421,1386].includes(num)?'jpg':'png';
-    return `<img src="vic_${num}.${ext}" alt="FEPE #${num}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://cdn.doggy.market/content/${id}';"/>`;
-  }
-  // Try CDN directly for all others
-  return `<img src="https://cdn.doggy.market/content/${id}" alt="FEPE #${num}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.parentNode.innerHTML='${getFrogPlaceholderStr(num)}'"/>`;
-}
-
-function getFrogPlaceholderStr(num){
-  return `<div class=\\"placeholder\\"><div class=\\"frog\\">🐸</div><div class=\\"pnum\\">#${num}</div></div>`;
-}
-
-function getFrogPlaceholder(num){
-  return `<div class="placeholder"><div class="frog">🐸</div><div class="pnum">#${num}</div></div>`;
+  return `<img src="https://cdn.doggy.market/content/${id}" alt="FEPE #${num}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
+          <div class="placeholder" style="display:none;"><div class="frog">🐸</div><div class="pnum">#${num}</div></div>`;
 }
 
 function render(){
@@ -370,7 +354,7 @@ function render(){
         ${getImageHTML(item.num, item.id)}
       </div>
       <div class="nft-info">
-        <span class="nft-name">FEPE #${item.num}</span>
+        <span class="nft-name">FEPE #${item.num - 1}</span>
         <span class="nft-inscription">ID: ${item.id.substring(0,18)}...</span>
         <div class="nft-btn">View on Doggy Market →</div>
       </div>

@@ -471,9 +471,9 @@ nav{
         <span class="wstat-sub">% of 4,049 total</span>
       </div>
       <div class="wstat">
-        <span class="wstat-label">Network</span>
-        <span class="wstat-val" style="color:var(--cyan)">DOGE</span>
-        <span class="wstat-sub">Sub-100K Doginals</span>
+        <span class="wstat-label">Total Doginals</span>
+        <span class="wstat-val" style="color:var(--cyan)" id="totalDoginals">—</span>
+        <span class="wstat-sub">All NFTs in wallet</span>
       </div>
     </div>
 
@@ -488,7 +488,7 @@ nav{
 
     <div id="fepeLoading" class="loading">
       <div class="spinner"></div>
-      <p>Scanning blockchain for your FEPEs...</p>
+      <p>Scanning blockchain for your NFTs...</p>
     </div>
 
     <div class="fepe-grid" id="fepeGrid" style="display:none;"></div>
@@ -498,6 +498,18 @@ nav{
       <h3>No FEPEs Found</h3>
       <p>This wallet doesn't hold any DoginalsFepe yet.<br/>Browse the collection and grab your first FEPE!</p>
       <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="buy-btn">🛒 Buy on Doggy Market</a>
+    </div>
+
+    <!-- Other Doginals -->
+    <div id="otherSection" style="display:none;">
+      <div class="sec-hdr" style="margin-top:40px;">
+        <div class="sec-hdr-left">
+          <h2>OTHER <span style="color:var(--cyan)">DOGINALS</span></h2>
+          <p id="otherSubtitle">Other Doginals NFTs in your wallet</p>
+        </div>
+        <span class="sec-badge" style="border-color:rgba(0,212,255,.3);color:var(--cyan);background:rgba(0,212,255,.08);" id="otherBadge">0 NFTs</span>
+      </div>
+      <div class="fepe-grid" id="otherGrid"></div>
     </div>
 
     <!-- Market Section -->
@@ -649,6 +661,7 @@ async function loadFEPEs(address) {
   document.getElementById('fepeLoading').style.display = 'block';
   document.getElementById('fepeGrid').style.display = 'none';
   document.getElementById('fepeEmpty').style.display = 'none';
+  document.getElementById('otherSection').style.display = 'none';
 
   try {
     // Fetch ALL NFTs from wallet, paginating if needed
@@ -666,28 +679,78 @@ async function loadFEPEs(address) {
       const items = data?.data || data?.items || data?.nfts || (Array.isArray(data) ? data : []);
       if (!items.length) break;
       allItems = allItems.concat(items);
-      // If we got fewer than limit, we've fetched all
       if (items.length < limit) break;
       offset += limit;
     }
 
-    // Filter only DoginalsFepe items
-    const fepeItems = allItems.filter(item =>
-      item?.nft?.collectionId === 'doginalsfepe' ||
-      item?.collectionId === 'doginalsfepe' ||
-      FEPE_LOOKUP[item?.inscriptionId] !== undefined
-    );
+    // Split into FEPEs and Other Doginals
+    const fepeItems = [];
+    const otherItems = [];
 
-    const fepes = extractFEPEs(fepeItems.length > 0 ? fepeItems : allItems);
-    renderFEPEs(fepes);
+    for (const item of allItems) {
+      const id = item.inscriptionId || item.id;
+      const collectionId = item?.nft?.collectionId || item?.collectionId || '';
+      if (collectionId === 'doginalsfepe' || (id && FEPE_LOOKUP[id] !== undefined)) {
+        fepeItems.push(item);
+      } else {
+        otherItems.push(item);
+      }
+    }
+
+    const fepes = extractFEPEs(fepeItems);
+    renderFEPEs(fepes, false, allItems.length);
+    renderOtherDoginals(otherItems);
 
   } catch(e) {
-    console.error('FEPE load error:', e);
-    renderFEPEs([], true);
+    console.error('NFT load error:', e);
+    renderFEPEs([], true, 0);
   }
 }
 
-function renderFEPEs(fepes, apiFailed = false) {
+function renderOtherDoginals(items) {
+  if (!items || items.length === 0) {
+    document.getElementById('otherSection').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('otherSection').style.display = 'block';
+  document.getElementById('otherBadge').textContent = items.length + ' NFTs';
+  document.getElementById('otherSubtitle').textContent = `${items.length} other Doginals NFT${items.length > 1 ? 's' : ''} in your wallet`;
+
+  const grid = document.getElementById('otherGrid');
+  grid.innerHTML = items.map(item => {
+    const id = item.inscriptionId || item.id || '';
+    const name = item?.nft?.itemName || item?.name || 'Doginal';
+    const itemId = item?.nft?.itemId || item?.inscriptionNumber || '';
+    const collection = item?.nft?.collectionId || item?.collectionId || '';
+    const imgUrl = `https://cdn.doggy.market/content/${id}`;
+    const marketUrl = `https://doggy.market/inscription/${id}`;
+
+    return `
+      <a class="fepe-card" href="${marketUrl}" target="_blank">
+        <div class="fepe-img">
+          <img
+            src="${imgUrl}"
+            alt="${name}"
+            loading="lazy"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+          />
+          <div class="ph" style="display:none;">
+            <div class="e">🎨</div>
+            <div class="n">#${itemId}</div>
+          </div>
+        </div>
+        <div class="fepe-info">
+          <span class="fepe-num">${name} ${itemId ? '#' + itemId : ''}</span>
+          <span class="fepe-id" style="color:var(--cyan);opacity:.7;">${collection || id.substring(0,16) + '...'}</span>
+          <div class="fepe-view" style="border-color:rgba(0,212,255,.25);color:var(--cyan);">View on Doggy Market →</div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+function renderFEPEs(fepes, apiFailed = false, totalDoginals = 0) {
   document.getElementById('fepeLoading').style.display = 'none';
 
   // Update stats
@@ -695,6 +758,7 @@ function renderFEPEs(fepes, apiFailed = false) {
   document.getElementById('fepeCount').textContent = count;
   document.getElementById('fepeBadge').textContent = count + ' FEPEs';
   document.getElementById('collectionPct').textContent = ((count/4049)*100).toFixed(2) + '%';
+  document.getElementById('totalDoginals').textContent = totalDoginals;
 
   if (count === 0) {
     document.getElementById('fepeEmpty').style.display = 'block';

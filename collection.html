@@ -352,13 +352,15 @@ function render() {
     <a class="nft-card" href="${item.marketUrl}" target="_blank">
       <div class="nft-img-wrap">
         <div class="skeleton"></div>
-        <img
+        <iframe
           src="${item.imgUrl}"
-          alt="DoginalsFepe #${item.num}"
+          title="DoginalsFepe #${item.num}"
           loading="lazy"
+          scrolling="no"
+          frameborder="0"
           onload="this.classList.add('loaded')"
-          onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://cdn.doggy.market/content/${item.id}';}else{this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%230f1118\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' fill=\'%23F5C518\' font-size=\'18\'%3E%23${item.num}%3C/text%3E%3C/svg%3E';this.classList.add('loaded');}"
-        />
+          style="width:100%;height:100%;border:none;pointer-events:none;"
+        ></iframe>
       </div>
       <div class="nft-info">
         <span class="nft-num">#${item.num}</span>

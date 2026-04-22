@@ -663,48 +663,84 @@ async function loadFEPEs(address) {
   document.getElementById('fepeEmpty').style.display = 'none';
   document.getElementById('otherSection').style.display = 'none';
 
-  try {
-    // Fetch ALL NFTs from wallet, paginating if needed
-    let allItems = [];
-    let offset = 0;
-    const limit = 40;
+  const targetUrl = `https://api.doggy.market/wallet/${address}/nfts?offset=0&limit=40`;
 
-    while (true) {
-      const res = await fetch(
-        `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=${limit}`,
-        { headers: { 'Accept': 'application/json' } }
-      );
-      if (!res.ok) break;
+  // Try direct first, then CORS proxies
+  const proxies = [
+    '',  // direct
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+    'https://cors-anywhere.herokuapp.com/',
+  ];
+
+  let allItems = [];
+  let success = false;
+
+  for (const proxy of proxies) {
+    try {
+      const url = proxy + encodeURIComponent ? (proxy ? proxy + encodeURIComponent(targetUrl) : targetUrl) : targetUrl;
+      // allorigins needs special encoding, others don't
+      const fetchUrl = proxy === 'https://api.allorigins.win/raw?url='
+        ? proxy + encodeURIComponent(targetUrl)
+        : proxy + targetUrl;
+
+      const res = await fetch(fetchUrl, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!res.ok) continue;
       const data = await res.json();
       const items = data?.data || data?.items || data?.nfts || (Array.isArray(data) ? data : []);
-      if (!items.length) break;
-      allItems = allItems.concat(items);
-      if (items.length < limit) break;
-      offset += limit;
-    }
+      if (items.length >= 0) {
+        allItems = items;
+        success = true;
 
-    // Split into FEPEs and Other Doginals
-    const fepeItems = [];
-    const otherItems = [];
-
-    for (const item of allItems) {
-      const id = item.inscriptionId || item.id;
-      const collectionId = item?.nft?.collectionId || item?.collectionId || '';
-      if (collectionId === 'doginalsfepe' || (id && FEPE_LOOKUP[id] !== undefined)) {
-        fepeItems.push(item);
-      } else {
-        otherItems.push(item);
+        // Paginate if needed
+        if (items.length === 40) {
+          let offset = 40;
+          while (true) {
+            const nextUrl = proxy === 'https://api.allorigins.win/raw?url='
+              ? proxy + encodeURIComponent(`https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`)
+              : proxy + `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
+            const r2 = await fetch(nextUrl, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
+            if (!r2.ok) break;
+            const d2 = await r2.json();
+            const more = d2?.data || d2?.items || d2?.nfts || (Array.isArray(d2) ? d2 : []);
+            if (!more.length) break;
+            allItems = allItems.concat(more);
+            if (more.length < 40) break;
+            offset += 40;
+          }
+        }
+        break;
       }
+    } catch(e) {
+      continue;
     }
-
-    const fepes = extractFEPEs(fepeItems);
-    renderFEPEs(fepes, false, allItems.length);
-    renderOtherDoginals(otherItems);
-
-  } catch(e) {
-    console.error('NFT load error:', e);
-    renderFEPEs([], true, 0);
   }
+
+  if (!success) {
+    renderFEPEs([], true, 0);
+    return;
+  }
+
+  // Split into FEPEs and Other Doginals
+  const fepeItems = [];
+  const otherItems = [];
+
+  for (const item of allItems) {
+    const id = item.inscriptionId || item.id;
+    const collectionId = item?.nft?.collectionId || item?.collectionId || '';
+    if (collectionId === 'doginalsfepe' || (id && FEPE_LOOKUP[id] !== undefined)) {
+      fepeItems.push(item);
+    } else {
+      otherItems.push(item);
+    }
+  }
+
+  const fepes = extractFEPEs(fepeItems);
+  renderFEPEs(fepes, false, allItems.length);
+  renderOtherDoginals(otherItems);
 }
 
 function renderOtherDoginals(items) {

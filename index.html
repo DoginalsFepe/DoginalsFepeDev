@@ -172,19 +172,52 @@ nav{
 /* Hero right: NFT mosaic */
 .hero-visual{
   position:relative;
-  display:flex;align-items:stretch;justify-content:stretch;
+  display:flex;align-items:center;justify-content:center;
   overflow:hidden;
   background:linear-gradient(135deg,#0a0c10 0%,#070810 100%);
   border-left:1px solid var(--border);
+  padding:40px;
+}
+/* radial glow behind image */
+.hero-visual::before{
+  content:'';position:absolute;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,197,24,0.08) 0%,transparent 70%);
+  pointer-events:none;
 }
 .hero-main-img{
-  width:100%;height:100%;
-  object-fit:cover;
-  object-position:center top;
+  width:70%;
+  max-width:420px;
+  height:auto;
+  object-fit:contain;
   display:block;
-  transition:transform .4s ease;
+  border-radius:24px;
+  border:2px solid rgba(245,197,24,0.25);
+  box-shadow:
+    0 0 0 6px rgba(245,197,24,0.05),
+    0 30px 80px rgba(0,0,0,0.6),
+    0 0 60px rgba(245,197,24,0.1);
+  animation:heroPopIn 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.3s both, heroFloat 6s ease-in-out 1.2s infinite;
+  transform-origin:center bottom;
+  cursor:pointer;
+  transition:box-shadow .3s;
 }
-.hero-main-img:hover{transform:scale(1.02);}
+.hero-main-img:hover{
+  box-shadow:
+    0 0 0 6px rgba(245,197,24,0.12),
+    0 40px 100px rgba(0,0,0,0.7),
+    0 0 80px rgba(245,197,24,0.2);
+}
+@keyframes heroPopIn{
+  0%{opacity:0;transform:scale(0.6) translateY(40px) rotate(-4deg);}
+  60%{transform:scale(1.06) translateY(-8px) rotate(1deg);}
+  80%{transform:scale(0.97) translateY(3px) rotate(-0.5deg);}
+  100%{opacity:1;transform:scale(1) translateY(0) rotate(0deg);}
+}
+@keyframes heroFloat{
+  0%,100%{transform:translateY(0) rotate(-0.5deg);}
+  50%{transform:translateY(-16px) rotate(0.5deg);}
+}
 
 @keyframes floatA{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(2deg)}}
 @keyframes floatB{0%,100%{transform:translateY(0) rotate(3deg)}50%{transform:translateY(-10px) rotate(-3deg)}}
@@ -192,7 +225,7 @@ nav{
 
 /* ─── BANNER ─── */
 .banner-wrap{position:relative;overflow:hidden;}
-.banner-wrap img{width:100%;height:auto;display:block;object-fit:unset;}
+.banner-wrap img{width:100%;max-height:420px;object-fit:cover;object-position:top;display:block;}
 .banner-overlay{
   position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(7,8,10,.7) 0%,transparent 40%,transparent 60%,rgba(7,8,10,.7) 100%);
@@ -293,8 +326,8 @@ section{padding:100px 6%;}
 
 /* ─── GALLERY ─── */
 #gallery{background:var(--bg);}
-.gallery-head{margin-bottom:48px;}
-.gallery-head .sec-body{margin-top:10px;}
+.gallery-head{margin-bottom:48px;text-align:center;}
+.gallery-head .sec-body{margin-top:10px;max-width:500px;margin-left:auto;margin-right:auto;}
 
 .tab-row{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;}
 .tab-btn{
@@ -521,7 +554,9 @@ footer{
       <span class="row2">FEPE</span>
     </h1>
     <p class="hero-desc">
-      <strong>4,049 unique frog NFTs</strong> permanently inscribed on the Dogecoin blockchain. Two iconic characters — Bob & Victor. No servers. No middlemen. Pure on-chain art, forever. Much wow.
+      <strong>4,049 Doginals Fepe</strong> permanently inscribed on the Dogecoin blockchain. Two iconic characters — Bob & Victor.<br/><br/>
+      There are less than 5 big collections under Sub100k. Doginals Fepe is one of the biggest Sub100k collections with 4,049 Inscriptions.<br/><br/>
+      Each Doginals Fepe is a Sub100k, making it a piece of history provenance in Dogecoin. Pure on-chain art, forever. Much wow.
     </p>
     <div class="hero-pills">
       <span class="pill gold">🐸 4,049 Supply</span>
@@ -589,7 +624,7 @@ footer{
       <div class="char-info">
         <span class="char-num">Character 01</span>
         <h3 class="char-name">BOB FEPE</h3>
-        <p class="char-desc">The original, loveable frog. Bob is expressive, colourful, and always got something to say. Bright cartoon illustration style, vivid colour palettes, and a personality that hits — from wholesome to mischievous. <strong>The day-shift legend.</strong></p>
+        <p class="char-desc">The original, loveable frog. Bob is expressive, colourful, and always got something to say. Bright cartoon illustration style, vivid colour palettes, and a personality that hits — from wholesome to mischievous.</p>
         <div class="char-tags">
           <span class="ctag ctag-g">Cartoon Art Style</span>
           <span class="ctag ctag-g">Vibrant Colours</span>
@@ -612,7 +647,7 @@ footer{
       <div class="char-info">
         <span class="char-num">Character 02</span>
         <h3 class="char-name">VICTOR FEPE</h3>
-        <p class="char-desc">The dark cyberpunk anti-hero. Victor is brooding, intense, and cinematic. Defined by a signature <strong>neon outline glow</strong>, glowing eyes, dark atmospheric backgrounds, and a street-level attitude that commands respect. <strong>The night-shift villain.</strong></p>
+        <p class="char-desc">The young and dark cyberpunk. Victor is brooding, intense, and cinematic. Defined by a signature <strong>neon outline glow</strong>, glowing eyes, dark atmospheric backgrounds, and a street-level attitude that commands respect.</p>
         <div class="char-tags">
           <span class="ctag ctag-c">Cyberpunk / Dark Art</span>
           <span class="ctag ctag-c">Neon Glow Outline</span>
@@ -627,14 +662,14 @@ footer{
 <!-- GALLERY -->
 <section id="gallery">
   <div class="gallery-head reveal">
-    <p class="sec-label">The Art</p>
-    <h2 class="sec-title">MEET THE <span class="g">FEPES</span></h2>
-    <p class="sec-body">Every FEPE is permanently inscribed on the Dogecoin blockchain — no two are alike. Browse both characters below.</p>
+    <p class="sec-label" style="text-align:center">The Art</p>
+    <h2 class="sec-title" style="text-align:center">MEET THE <span class="g">FEPES</span></h2>
+    <p class="sec-body" style="text-align:center">Every FEPE is permanently inscribed on the Dogecoin blockchain — no two are alike. Browse both characters below.</p>
   </div>
 
   <div class="tab-row reveal">
-    <button class="tab-btn active-bob" id="btn-bob" onclick="switchTab('bob')">🐸 Bob Fepe</button>
-    <button class="tab-btn" id="btn-vic" onclick="switchTab('vic')">😈 Victor Fepe</button>
+    <button class="tab-btn active-bob" id="btn-bob" onclick="switchTab('bob')">Bob Fepe</button>
+    <button class="tab-btn" id="btn-vic" onclick="switchTab('vic')">Victor Fepe</button>
   </div>
 
   <!-- Bob grid -->
@@ -697,9 +732,9 @@ footer{
       </div>
       <div class="buy-head-img">
         <img src="bob_120.png" alt="Bob Fepe"/>
-        <img src="vic_1848.jpg" alt="Victor Fepe"/>
+        <img src="vic_42.png" alt="Victor Fepe"/>
         <img src="bob_56.png" alt="Bob Fepe"/>
-        <img src="vic_827.png" alt="Victor Fepe"/>
+        <img src="vic_1848.jpg" alt="Victor Fepe"/>
       </div>
     </div>
 
@@ -749,8 +784,9 @@ footer{
     <div class="about-text reveal">
       <p class="sec-label">What are Doginals?</p>
       <h2 class="sec-title">INSCRIBED ON <span class="g">DOGECOIN</span><br><span class="c">FOREVER</span></h2>
-      <p class="sec-body">Doginals are NFTs inscribed directly onto the Dogecoin blockchain — similar to Bitcoin Ordinals but built on DOGE. Each inscription embeds the image data permanently into a Dogecoin transaction. No external hosting. No IPFS. No servers. Your FEPE lives on the blockchain forever.</p>
-      <p class="sec-body" style="margin-top:14px;">With <strong style="color:var(--white)">Sub-100K inscription numbers</strong>, DoginalsFepe is among the very first artifacts ever created in the Doginals ecosystem — making every FEPE a piece of crypto history.</p>
+      <p class="sec-body">Doginals are Art or Digital Collectibles inscribed directly onto the Dogecoin blockchain — similar to Bitcoin Ordinals but built on DOGE. You are able to trade the Assets in Dogecoin.</p>
+      <p class="sec-body" style="margin-top:14px;">Each inscription embeds the image data permanently into a Dogecoin transaction. No external hosting. No IPFS. No censorship. Permissionless. Your FEPE lives on the blockchain forever.</p>
+      <p class="sec-body" style="margin-top:14px;">With <strong style="color:var(--white)">Sub-100K inscription numbers</strong>, Doginals Fepe is among the very first Digital Artifacts ever created in the Doginals ecosystem.</p>
       <div class="facts">
         <div class="fact"><span class="fact-n">4,049</span><span class="fact-l">Unique FEPEs</span></div>
         <div class="fact"><span class="fact-n">Sub100K</span><span class="fact-l">Inscription Tier</span></div>
@@ -783,7 +819,7 @@ footer{
           <span class="faq-qt">What is the difference between Bob Fepe and Victor Fepe?</span>
           <span class="faq-ch">+</span>
         </button>
-        <div class="faq-a">Bob Fepe is the bright, cartoonish, expressive character — vibrant colours, fun accessories, wholesome personality. Victor Fepe is the dark cyberpunk anti-hero — defined by his neon outline glow, cinematic dark backgrounds, and intense glowing eyes. Together they make up the full 4,049 supply.</div>
+        <div class="faq-a">Bob Fepe is the bright, cartoonish, expressive character — vibrant colours, fun accessories, wholesome personality. Victor Fepe is the young and dark cyberpunk — defined by his neon outline glow, cinematic dark backgrounds, and intense glowing eyes. Together they make up the full 4,049 supply.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">
@@ -797,14 +833,14 @@ footer{
           <span class="faq-qt">What makes DoginalsFepe historically significant?</span>
           <span class="faq-ch">+</span>
         </button>
-        <div class="faq-a">DoginalsFepe holds <strong>Sub-100K inscription numbers (84K–95K)</strong> — placing it among the earliest artifacts ever inscribed in the Doginals ecosystem. In the NFT world, early inscription numbers are widely recognised as historically significant and carry long-term collector value.</div>
+        <div class="faq-a">DoginalsFepe holds Sub-100K inscription numbers (84K–95K) — placing it among the earliest artifacts ever inscribed in the Doginals ecosystem. In the Digital Collectibles world, low inscription number with Historical Provenance often widely recognised, which it carry more long-term collector value.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">
           <span class="faq-qt">Where can I buy a DoginalsFepe?</span>
           <span class="faq-ch">+</span>
         </button>
-        <div class="faq-a">Buy on <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Doggy Market</a> — the leading Doginals marketplace. You'll need a Doge Labs Wallet and some DOGE to complete a purchase.</div>
+        <div class="faq-a">Buy on <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Doggy Market</a> — the leading Doginals marketplace. You'll need to create a Wallet in Doggy.Market and some Dogecoins to complete a purchase.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">
@@ -818,7 +854,7 @@ footer{
           <span class="faq-qt">How do I store my FEPE safely?</span>
           <span class="faq-ch">+</span>
         </button>
-        <div class="faq-a">Your FEPE is stored in your <strong>Doge Labs Wallet</strong>. Keep your seed phrase secure and never share it. Since Doginals are inscribed directly on-chain, your frog is secured by the Dogecoin blockchain itself — which has been running since 2013.</div>
+        <div class="faq-a">Your FEPE is stored in your Wallet. Keep your seed phrase secure and never share it. Since Doginals are inscribed directly on-chain, your frog is secured by the Dogecoin blockchain itself — which has been running since 2013.</div>
       </div>
     </div>
   </div>

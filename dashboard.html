@@ -633,70 +633,61 @@ function showDashboard(address, balance) {
 }
 
 // Load FEPEs owned by address using Doggy Market API
+// Extract FEPEs from any array of inscription objects
+function extractFEPEs(items) {
+  const found = [];
+  for (const item of items) {
+    const id = item.inscriptionId || item.id || item.inscription_id;
+    if (id && FEPE_LOOKUP[id] !== undefined) {
+      found.push({ num: FEPE_LOOKUP[id], id: id });
+    }
+  }
+  return found.sort((a,b) => a.num - b.num);
+}
+
 async function loadFEPEs(address) {
   document.getElementById('fepeLoading').style.display = 'block';
   document.getElementById('fepeGrid').style.display = 'none';
   document.getElementById('fepeEmpty').style.display = 'none';
 
   try {
-    // Fetch inscriptions owned by this address from Doggy Market
-    const res = await fetch(`https://doggy.market/api/address/inscriptions?address=${address}&collectionSymbol=doginalsfepe`);
-    const data = await res.json();
+    // Fetch ALL NFTs from wallet, paginating if needed
+    let allItems = [];
+    let offset = 0;
+    const limit = 40;
 
-    let ownedFEPEs = [];
-
-    if (data && data.inscriptions && data.inscriptions.length > 0) {
-      // Map inscription IDs to FEPE numbers
-      ownedFEPEs = data.inscriptions
-        .map(insc => {
-          const id = insc.id || insc.inscriptionId;
-          const fepeNum = FEPE_LOOKUP[id];
-          if (fepeNum !== undefined) {
-            return { num: fepeNum, id: id };
-          }
-          return null;
-        })
-        .filter(Boolean)
-        .sort((a,b) => a.num - b.num);
+    while (true) {
+      const res = await fetch(
+        `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=${limit}`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      if (!res.ok) break;
+      const data = await res.json();
+      const items = data?.data || data?.items || data?.nfts || (Array.isArray(data) ? data : []);
+      if (!items.length) break;
+      allItems = allItems.concat(items);
+      // If we got fewer than limit, we've fetched all
+      if (items.length < limit) break;
+      offset += limit;
     }
 
-    renderFEPEs(ownedFEPEs);
+    // Filter only DoginalsFepe items
+    const fepeItems = allItems.filter(item =>
+      item?.nft?.collectionId === 'doginalsfepe' ||
+      item?.collectionId === 'doginalsfepe' ||
+      FEPE_LOOKUP[item?.inscriptionId] !== undefined
+    );
+
+    const fepes = extractFEPEs(fepeItems.length > 0 ? fepeItems : allItems);
+    renderFEPEs(fepes);
 
   } catch(e) {
-    // If API fails, try alternative approach
-    loadFEPEsAlternative(address);
+    console.error('FEPE load error:', e);
+    renderFEPEs([], true);
   }
 }
 
-async function loadFEPEsAlternative(address) {
-  try {
-    const res = await fetch(`https://doggy.market/api/wallet/${address}/nfts?collection=doginalsfepe`);
-    const data = await res.json();
-
-    let ownedFEPEs = [];
-    const items = data?.items || data?.nfts || data?.results || [];
-
-    if (items.length > 0) {
-      ownedFEPEs = items
-        .map(item => {
-          const id = item.id || item.inscriptionId || item.inscription_id;
-          const fepeNum = FEPE_LOOKUP[id];
-          if (fepeNum !== undefined) {
-            return { num: fepeNum, id: id };
-          }
-          return null;
-        })
-        .filter(Boolean)
-        .sort((a,b) => a.num - b.num);
-    }
-
-    renderFEPEs(ownedFEPEs);
-  } catch(e) {
-    renderFEPEs([]);
-  }
-}
-
-function renderFEPEs(fepes) {
+function renderFEPEs(fepes, apiFailed = false) {
   document.getElementById('fepeLoading').style.display = 'none';
 
   // Update stats
@@ -707,7 +698,9 @@ function renderFEPEs(fepes) {
 
   if (count === 0) {
     document.getElementById('fepeEmpty').style.display = 'block';
-    document.getElementById('fepeSubtitle').textContent = 'No DoginalsFepe found in this wallet.';
+    document.getElementById('fepeSubtitle').textContent = apiFailed
+      ? '⚠️ Could not fetch inscriptions — Doggy Market API may be unavailable.'
+      : 'No DoginalsFepe found in this wallet.';
     return;
   }
 

@@ -410,12 +410,13 @@ nav{
           <span class="wallet-opt-badge">Recommended</span>
         </button>
         <!-- 2. Nintondo -->
-        <button class="wallet-opt" onclick="connectNintondo()">
+        <button class="wallet-opt" onclick="connectNintondo()" style="opacity:.6;">
           <div class="wallet-opt-icon">🔔</div>
           <div class="wallet-opt-info">
             <div class="wallet-opt-name">Nintondo Wallet</div>
-            <div class="wallet-opt-desc">Connect with Nintondo browser extension</div>
+            <div class="wallet-opt-desc">dApp connection not yet supported</div>
           </div>
+          <span class="wallet-opt-badge" style="background:rgba(255,100,0,.15);border-color:orange;color:orange;">Soon</span>
         </button>
         <!-- 3. Ordifind -->
         <button class="wallet-opt" onclick="connectOrdifind()">
@@ -576,6 +577,7 @@ const FEPE_LOOKUP={"74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6ca6b937
 })();
 let connectedAddress = null;
 let isMyDogeConnected = false;
+let myDogeMask = null;
 
 // Listen for MyDoge wallet
 window.addEventListener('doge#initialized', () => {
@@ -626,59 +628,14 @@ async function connectMyDoge() {
 }
 
 // 2. Nintondo
-// 2. Nintondo
+// 2. Nintondo - dApp API not yet supported on external sites
 async function connectNintondo() {
-  await new Promise(r => setTimeout(r, 500));
-
-  // Nintondo can inject as window.nintondo or window.nintondoWallet
-  const nintondo = window.nintondo || window.nintondoWallet;
-
-  if (!nintondo) {
-    const el = document.getElementById('noWalletMsg');
-    el.style.display = 'block';
-    el.innerHTML = `Nintondo Wallet not detected or not responding. Please ensure:<br>
-      1. <a href="https://chromewebstore.google.com/detail/nintondo-wallet/akkmagafhjjjjclaejjomkeccmjhdkpa" target="_blank">Nintondo is installed</a><br>
-      2. The wallet is <strong>unlocked</strong><br>
-      3. Network is set to <strong>Dogecoin</strong> (not Bellscoin)<br>
-      4. Refresh the page and try again`;
-    return;
-  }
-
-  try {
-    showToast('Connecting to Nintondo...');
-    const provider = nintondo.provider || nintondo;
-    let address = null;
-
-    // Try dogeMainnet first
-    try {
-      address = await provider.connect('dogeMainnet');
-    } catch(e1) {
-      try { address = await provider.connect(); } catch(e2) {
-        try { address = await provider.getAccount(); } catch(e3) {}
-      }
-    }
-
-    if (address && typeof address === 'object') {
-      address = address.address || address[0] || null;
-    }
-
-    if (address && typeof address === 'string') {
-      connectedAddress = address;
-      let balance = '—';
-      try {
-        const bal = await provider.getBalance?.();
-        if (bal) balance = (parseInt(bal) / 100000000).toFixed(2);
-      } catch(e) {}
-      showDashboard(address, balance, 'Nintondo');
-      if (balance === '—') fetchBalance(address);
-      loadFEPEs(address);
-    } else {
-      showToast('Nintondo: Could not get address. Switch wallet to Dogecoin network.');
-    }
-  } catch(e) {
-    showToast('Nintondo connection failed. Make sure Dogecoin network is selected.');
-    console.error('Nintondo error:', e);
-  }
+  const el = document.getElementById('noWalletMsg');
+  el.style.display = 'block';
+  el.innerHTML = `⚠️ Nintondo Wallet dApp connection is not yet supported on external websites.<br><br>
+    To view your FEPEs, please use one of these options:<br>
+    • Use <strong>MyDoge</strong>, <strong>Ordifind</strong> or <strong>Doge Labs</strong> wallet instead<br>
+    • Or use <strong>Enter Address Manually</strong> with your Dogecoin address`;
 }
 
 // 3. Ordifind

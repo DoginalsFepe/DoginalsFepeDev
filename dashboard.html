@@ -628,45 +628,55 @@ async function connectMyDoge() {
 // 2. Nintondo
 // 2. Nintondo
 async function connectNintondo() {
-  // Nintondo injects window.nintondo — wait a moment for injection
-  await new Promise(r => setTimeout(r, 300));
-  const nintondo = window.nintondo;
+  await new Promise(r => setTimeout(r, 500));
+
+  // Nintondo can inject as window.nintondo or window.nintondoWallet
+  const nintondo = window.nintondo || window.nintondoWallet;
+
   if (!nintondo) {
-    showNoWallet('Nintondo Wallet', 'https://chromewebstore.google.com/detail/nintondo-wallet/akkmagafhjjjjclaejjomkeccmjhdkpa');
+    const el = document.getElementById('noWalletMsg');
+    el.style.display = 'block';
+    el.innerHTML = `Nintondo Wallet not detected or not responding. Please ensure:<br>
+      1. <a href="https://chromewebstore.google.com/detail/nintondo-wallet/akkmagafhjjjjclaejjomkeccmjhdkpa" target="_blank">Nintondo is installed</a><br>
+      2. The wallet is <strong>unlocked</strong><br>
+      3. Network is set to <strong>Dogecoin</strong> (not Bellscoin)<br>
+      4. Refresh the page and try again`;
     return;
   }
+
   try {
     showToast('Connecting to Nintondo...');
-    // Try provider.connect with dogeMainnet first, fallback to bellsMainnet
-    let address = null;
     const provider = nintondo.provider || nintondo;
+    let address = null;
+
+    // Try dogeMainnet first
     try {
       address = await provider.connect('dogeMainnet');
     } catch(e1) {
-      try {
-        address = await provider.connect('bellsMainnet');
-      } catch(e2) {
-        // Try getAccount if connect fails
+      try { address = await provider.connect(); } catch(e2) {
         try { address = await provider.getAccount(); } catch(e3) {}
       }
     }
-    // address might be a string or object
-    if (address && typeof address === 'object') address = address.address || address[0] || null;
-    if (address) {
+
+    if (address && typeof address === 'object') {
+      address = address.address || address[0] || null;
+    }
+
+    if (address && typeof address === 'string') {
       connectedAddress = address;
       let balance = '—';
       try {
-        const bal = await (provider.getBalance?.() || Promise.reject());
-        balance = (parseInt(bal) / 100000000).toFixed(2);
+        const bal = await provider.getBalance?.();
+        if (bal) balance = (parseInt(bal) / 100000000).toFixed(2);
       } catch(e) {}
       showDashboard(address, balance, 'Nintondo');
       if (balance === '—') fetchBalance(address);
       loadFEPEs(address);
     } else {
-      showToast('Could not get address from Nintondo. Make sure Dogecoin network is selected in the wallet.');
+      showToast('Nintondo: Could not get address. Switch wallet to Dogecoin network.');
     }
   } catch(e) {
-    showToast('Nintondo connection cancelled or failed.');
+    showToast('Nintondo connection failed. Make sure Dogecoin network is selected.');
     console.error('Nintondo error:', e);
   }
 }
@@ -688,22 +698,26 @@ async function connectOrdifind() {
     else if (ordifind.requestAccounts) raw = await ordifind.requestAccounts();
     else if (ordifind.getAccounts) raw = await ordifind.getAccounts();
 
-    // Extract address from whatever response we get
-    if (typeof raw === 'string') {
+    // Response format: {status: 'success', response: {address: '...', ...}}
+    if (raw?.status === 'success' && raw?.response) {
+      const r = raw.response;
+      address = r.address || r.accounts?.[0] || r[0] || null;
+      // If response itself is array
+      if (!address && Array.isArray(r)) address = r[0];
+      // Deep search for D... address
+      if (!address) {
+        for (const k of Object.keys(r)) {
+          if (typeof r[k] === 'string' && r[k].startsWith('D')) {
+            address = r[k]; break;
+          }
+        }
+      }
+    } else if (typeof raw === 'string') {
       address = raw;
     } else if (Array.isArray(raw)) {
       address = raw[0];
     } else if (raw && typeof raw === 'object') {
-      address = raw.address || raw.accounts?.[0] || raw[0] || null;
-      // If still object, try JSON keys
-      if (!address) {
-        const keys = Object.keys(raw);
-        for (const k of keys) {
-          if (typeof raw[k] === 'string' && raw[k].startsWith('D')) {
-            address = raw[k]; break;
-          }
-        }
-      }
+      address = raw.address || raw.accounts?.[0] || null;
     }
 
     if (address && typeof address === 'string' && address.startsWith('D')) {
@@ -712,8 +726,9 @@ async function connectOrdifind() {
       fetchBalance(address);
       loadFEPEs(address);
     } else {
+      // Log full response for debugging
+      console.log('Ordifind full raw:', JSON.stringify(raw));
       showToast('Could not retrieve Dogecoin address from Ordifind.');
-      console.log('Ordifind raw response:', raw);
     }
   } catch(e) {
     showToast('Ordifind connection cancelled or failed.');

@@ -626,8 +626,10 @@ async function connectMyDoge() {
 }
 
 // 2. Nintondo
+// 2. Nintondo
 async function connectNintondo() {
-  // Nintondo injects window.nintondo
+  // Nintondo injects window.nintondo — wait a moment for injection
+  await new Promise(r => setTimeout(r, 300));
   const nintondo = window.nintondo;
   if (!nintondo) {
     showNoWallet('Nintondo Wallet', 'https://chromewebstore.google.com/detail/nintondo-wallet/akkmagafhjjjjclaejjomkeccmjhdkpa');
@@ -635,55 +637,87 @@ async function connectNintondo() {
   }
   try {
     showToast('Connecting to Nintondo...');
-    // Connect with dogecoin network
-    const address = await nintondo.provider.connect('dogeMainnet');
+    // Try provider.connect with dogeMainnet first, fallback to bellsMainnet
+    let address = null;
+    const provider = nintondo.provider || nintondo;
+    try {
+      address = await provider.connect('dogeMainnet');
+    } catch(e1) {
+      try {
+        address = await provider.connect('bellsMainnet');
+      } catch(e2) {
+        // Try getAccount if connect fails
+        try { address = await provider.getAccount(); } catch(e3) {}
+      }
+    }
+    // address might be a string or object
+    if (address && typeof address === 'object') address = address.address || address[0] || null;
     if (address) {
       connectedAddress = address;
       let balance = '—';
       try {
-        const bal = await nintondo.provider.getBalance();
-        balance = (bal / 100000000).toFixed(2);
+        const bal = await (provider.getBalance?.() || Promise.reject());
+        balance = (parseInt(bal) / 100000000).toFixed(2);
       } catch(e) {}
       showDashboard(address, balance, 'Nintondo');
+      if (balance === '—') fetchBalance(address);
       loadFEPEs(address);
+    } else {
+      showToast('Could not get address from Nintondo. Make sure Dogecoin network is selected in the wallet.');
     }
   } catch(e) {
     showToast('Nintondo connection cancelled or failed.');
+    console.error('Nintondo error:', e);
   }
 }
 
 // 3. Ordifind
 async function connectOrdifind() {
-  // Ordifind injects window.ordifind or window.oifi
-  const ordifind = window.ordifind || window.oifi;
+  await new Promise(r => setTimeout(r, 300));
+  const ordifind = window.ordifind || window.oifi || window.OIFI;
   if (!ordifind) {
     showNoWallet('Ordifind Wallet', 'https://chromewebstore.google.com/detail/ordifind-wallet/dpcklmdombjcplafheapiblogdlgjjlb');
     return;
   }
   try {
     showToast('Connecting to Ordifind...');
-    // Try standard connect methods
     let address = null;
-    if (ordifind.connect) {
-      const res = await ordifind.connect();
-      address = res?.address || res;
-    } else if (ordifind.requestAccounts) {
-      const accounts = await ordifind.requestAccounts();
-      address = accounts?.[0];
-    } else if (ordifind.getAccounts) {
-      const accounts = await ordifind.getAccounts();
-      address = accounts?.[0];
+    let raw = null;
+
+    if (ordifind.connect) raw = await ordifind.connect();
+    else if (ordifind.requestAccounts) raw = await ordifind.requestAccounts();
+    else if (ordifind.getAccounts) raw = await ordifind.getAccounts();
+
+    // Extract address from whatever response we get
+    if (typeof raw === 'string') {
+      address = raw;
+    } else if (Array.isArray(raw)) {
+      address = raw[0];
+    } else if (raw && typeof raw === 'object') {
+      address = raw.address || raw.accounts?.[0] || raw[0] || null;
+      // If still object, try JSON keys
+      if (!address) {
+        const keys = Object.keys(raw);
+        for (const k of keys) {
+          if (typeof raw[k] === 'string' && raw[k].startsWith('D')) {
+            address = raw[k]; break;
+          }
+        }
+      }
     }
-    if (address) {
+
+    if (address && typeof address === 'string' && address.startsWith('D')) {
       connectedAddress = address;
       showDashboard(address, '—', 'Ordifind');
       fetchBalance(address);
       loadFEPEs(address);
     } else {
-      showToast('Could not retrieve address from Ordifind.');
+      showToast('Could not retrieve Dogecoin address from Ordifind.');
+      console.log('Ordifind raw response:', raw);
     }
   } catch(e) {
     showToast('Ordifind connection cancelled or failed.');
+    console.error('Ordifind error:', e);
   }
 }
 
@@ -739,20 +773,33 @@ async function loadManualAddress() {
   fetchBalance(addr);
 }
 
-// Fetch balance from public Dogecoin API
+// Fetch balance from public Dogecoin APIs with fallbacks
 async function fetchBalance(address) {
-  try {
-    const res = await fetch(`https://dogechain.info/api/v1/address/balance/${address}`);
-    const data = await res.json();
-    if (data.success) {
-      const bal = parseFloat(data.balance).toLocaleString(undefined, {maximumFractionDigits:2});
-      document.getElementById('dogeBalance').textContent = bal + ' Ð';
-      document.getElementById('dogeBalanceSub').textContent = 'Dogecoin';
-    }
-  } catch(e) {
-    document.getElementById('dogeBalance').textContent = 'N/A';
-    document.getElementById('dogeBalanceSub').textContent = 'Could not fetch';
+  const apis = [
+    {
+      url: `https://api.blockcypher.com/v1/doge/main/addrs/${address}/balance`,
+      parse: d => (d.balance / 100000000).toLocaleString(undefined, {maximumFractionDigits:2})
+    },
+    {
+      url: `https://dogechain.info/api/v1/address/balance/${address}`,
+      parse: d => d.success ? parseFloat(d.balance).toLocaleString(undefined, {maximumFractionDigits:2}) : null
+    },
+  ];
+  for (const api of apis) {
+    try {
+      const res = await fetch(api.url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const bal = api.parse(data);
+      if (bal !== null && bal !== undefined) {
+        document.getElementById('dogeBalance').textContent = bal + ' Ð';
+        document.getElementById('dogeBalanceSub').textContent = 'Dogecoin';
+        return;
+      }
+    } catch(e) { continue; }
   }
+  document.getElementById('dogeBalance').textContent = 'N/A';
+  document.getElementById('dogeBalanceSub').textContent = 'Could not fetch';
 }
 
 function showDashboard(address, balance, walletName) {

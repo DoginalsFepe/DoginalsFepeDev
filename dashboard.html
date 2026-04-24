@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>DoginalsFepe — My Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
@@ -341,6 +342,16 @@ nav{
 .mbtn-outline:hover{border-color:var(--white);}
 
 /* RESPONSIVE */
+/* HAMBURGER */
+.nav-right{display:flex;align-items:center;gap:12px;}
+.hamburger{display:none;flex-direction:column;justify-content:space-between;width:28px;height:20px;background:none;border:none;cursor:pointer;padding:0;z-index:600;}
+.hamburger span{display:block;width:100%;height:2px;background:var(--white);border-radius:2px;transition:all .3s ease;}
+.hamburger.open span:nth-child(1){transform:translateY(9px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-9px) rotate(-45deg);}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;}
+.mobile-overlay.show{display:block;}
+
 @media(max-width:900px){
   .wallet-card{grid-template-columns:1fr 1fr;}
   .wstat{border-right:none;border-bottom:1px solid var(--border);padding-bottom:16px;}
@@ -350,7 +361,20 @@ nav{
 @media(max-width:600px){
   .wallet-card{grid-template-columns:1fr;}
   .fepe-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
-  nav .nav-links{display:none;}
+  .hamburger{display:flex;}
+  .nav-links{
+    display:flex!important;flex-direction:column;
+    position:fixed;top:0;right:-100%;width:75%;max-width:280px;height:100vh;
+    background:rgba(12,14,18,0.98);border-left:1px solid rgba(245,197,24,0.2);
+    padding:80px 24px 40px;gap:0;z-index:500;transition:right .3s ease;
+  }
+  .nav-links.open{right:0;}
+  .nav-links a{display:block;padding:16px 0;color:var(--white)!important;font-size:1rem;font-weight:700;border-bottom:1px solid var(--border);}
+  .main{padding:80px 4% 40px;}
+  .connect-box{padding:32px 20px;}
+  .dashboard-inner{padding:80px 4% 40px;}
+  .address-wrap{flex-wrap:wrap;gap:6px;}
+  .address-val{font-size:.65rem;}
 }
 </style>
 </head>
@@ -362,12 +386,14 @@ nav{
     <div class="nav-coin">Ð</div>
     <span class="l1">DOGINALS</span><span class="l2">FEPE</span>
   </a>
-  <div class="nav-links">
-    <a href="index.html">← Home</a>
-    <a href="collection.html">Full Collection</a>
-    <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Doggy Market</a>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html" onclick="closeMenu()">← Home</a>
+    <a href="collection.html" onclick="closeMenu()">Full Collection</a>
+    <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" onclick="closeMenu()">Doggy Market</a>
   </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
 </nav>
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeMenu()"></div>
 
 <!-- MAIN -->
 <div class="main">
@@ -1003,6 +1029,19 @@ async function disconnect() {
   document.getElementById('noWalletMsg').innerHTML = '';
   showToast('Wallet disconnected.');
 }
+
+// ─── HAMBURGER MENU ───
+function toggleMenu(){
+  document.getElementById('navLinks').classList.toggle('open');
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('show');
+}
+function closeMenu(){
+  document.getElementById('navLinks').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('show');
+}
+window.addEventListener('resize',()=>{if(window.innerWidth>600)closeMenu();});
 </script>
 </body>
 </html>

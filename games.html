@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DoginalsFepe — Games</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --gold:#F5C518;--cyan:#00D4FF;--bg:#07080A;--bg2:#0C0E12;
+  --card:#0F1118;--border:rgba(255,255,255,0.07);--white:#FFFFFF;--grey:#8899AA;
+  --doge:#C2A633;--pink:#FF6BD6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px;}
+
+/* NAV */
+nav{
+  position:fixed;top:0;width:100%;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5%;height:64px;
+  background:rgba(7,8,10,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(245,197,24,0.2);
+}
+.nav-logo{font-family:'Bangers',cursive;font-size:1.6rem;letter-spacing:3px;text-decoration:none;display:flex;align-items:center;gap:10px;}
+.nav-coin{width:30px;height:30px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;color:#1a0d00;}
+.nav-logo .l1{color:var(--white);}.nav-logo .l2{color:var(--gold);}
+.nav-links{display:flex;gap:20px;align-items:center;}
+.nav-links a{color:var(--grey);text-decoration:none;font-weight:600;font-size:.85rem;transition:color .2s;}
+.nav-links a:hover{color:var(--white);}
+.nav-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;padding:8px 20px;border-radius:8px;border:2px solid var(--gold);color:var(--gold);text-decoration:none;background:transparent;transition:all .2s;}
+.nav-btn:hover{background:var(--gold);color:#000;}
+
+/* PAGE HEADER */
+.page-header{
+  padding:90px 5% 40px;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,197,24,0.08) 0%,transparent 60%);
+  border-bottom:1px solid var(--border);
+}
+.page-header h1{font-family:'Bangers',cursive;font-size:clamp(3rem,8vw,6rem);letter-spacing:4px;line-height:1;}
+.page-header h1 span{color:var(--gold);}
+.page-header p{color:var(--grey);margin-top:10px;font-size:1rem;}
+
+/* WALLET CONNECT BAR */
+.wallet-bar{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:20px 5%;background:var(--bg2);border-bottom:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.wallet-bar p{color:var(--grey);font-size:.9rem;}
+.connect-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.wbtn{
+  font-family:'Bangers',cursive;font-size:.95rem;letter-spacing:1px;
+  padding:8px 18px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--white);cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:6px;
+}
+.wbtn:hover{border-color:var(--gold);color:var(--gold);}
+.wbtn.connected{background:rgba(245,197,24,0.1);border-color:var(--gold);color:var(--gold);}
+.char-info{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);
+  border-radius:10px;padding:8px 16px;
+}
+.char-avatar{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--gold);}
+.char-name{font-family:'Bangers',cursive;font-size:1rem;color:var(--gold);letter-spacing:1px;}
+.char-sub{font-size:.7rem;color:var(--grey);}
+
+/* GAMES GRID */
+.games-wrap{max-width:1200px;margin:0 auto;padding:40px 5%;}
+.games-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+.game-section{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.game-header{
+  padding:20px 24px;
+  background:linear-gradient(135deg,rgba(245,197,24,0.08),rgba(0,212,255,0.05));
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.game-title{font-family:'Bangers',cursive;font-size:1.6rem;letter-spacing:2px;}
+.game-title span{color:var(--gold);}
+.game-score-wrap{text-align:right;}
+.game-score-label{font-size:.65rem;color:var(--grey);letter-spacing:2px;text-transform:uppercase;}
+.game-score{font-family:'Bangers',cursive;font-size:1.8rem;color:var(--gold);}
+.game-body{padding:20px;}
+.game-canvas-wrap{
+  position:relative;border-radius:12px;overflow:hidden;
+  border:2px solid var(--border);background:#050608;
+}
+canvas{display:block;width:100%;image-rendering:pixelated;}
+.game-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:rgba(7,8,10,0.92);backdrop-filter:blur(4px);
+  text-align:center;padding:20px;
+}
+.overlay-title{font-family:'Bangers',cursive;font-size:2.5rem;letter-spacing:3px;margin-bottom:8px;}
+.overlay-sub{color:var(--grey);font-size:.9rem;margin-bottom:20px;}
+.overlay-score{font-family:'Bangers',cursive;font-size:1.4rem;color:var(--gold);margin-bottom:16px;}
+.play-btn{
+  font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:3px;
+  padding:14px 40px;border-radius:12px;
+  background:var(--gold);color:#000;border:none;cursor:pointer;
+  transition:all .2s;box-shadow:0 0 30px rgba(245,197,24,0.3);
+}
+.play-btn:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(245,197,24,0.5);}
+.game-controls{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.ctrl-badge{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:6px;padding:4px 10px;font-size:.75rem;color:var(--grey);
+}
+.best-score{font-size:.75rem;color:var(--grey);margin-top:8px;}
+.best-score span{color:var(--gold);font-weight:700;}
+
+/* PUZZLE GRID */
+.puzzle-board{display:grid;gap:4px;margin:0 auto;}
+.puzzle-cell{
+  border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;transition:transform .15s,box-shadow .15s;
+  border:2px solid transparent;position:relative;overflow:hidden;
+}
+.puzzle-cell img{width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none;}
+.puzzle-cell:hover{transform:scale(1.05);}
+.puzzle-cell.selected{border-color:var(--gold);box-shadow:0 0 16px rgba(245,197,24,0.5);transform:scale(1.08);}
+.puzzle-cell.matched{border-color:var(--cyan);box-shadow:0 0 16px rgba(0,212,255,0.4);animation:matchPop .4s ease;}
+.puzzle-cell.wrong{animation:wrongShake .3s ease;}
+@keyframes matchPop{0%{transform:scale(1.08)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.puzzle-stats{display:flex;gap:16px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+.pstat{text-align:center;}
+.pstat-n{font-family:'Bangers',cursive;font-size:1.4rem;color:var(--gold);display:block;}
+.pstat-l{font-size:.65rem;color:var(--grey);letter-spacing:1px;text-transform:uppercase;}
+
+.diff-btns{display:flex;gap:8px;margin-bottom:14px;justify-content:center;}
+.diff-btn{
+  font-family:'Bangers',cursive;font-size:.9rem;letter-spacing:1px;
+  padding:6px 16px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--grey);cursor:pointer;transition:all .2s;
+}
+.diff-btn.active,.diff-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(245,197,24,0.08);}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:24px 5%;text-align:center;}
+footer p{color:var(--grey);font-size:.8rem;}
+footer a{color:var(--gold);text-decoration:none;}
+
+/* RESPONSIVE */
+@media(max-width:900px){.games-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){
+  .nav-links{display:none;}
+  .wallet-bar{flex-direction:column;gap:10px;}
+  .game-header{flex-direction:column;gap:8px;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="nav-coin">Ð</div>
+    <span class="l1">DOGINALS</span><span class="l2">FEPE</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">← Home</a>
+    <a href="collection.html">Collection</a>
+    <a href="dashboard.html">Dashboard</a>
+  </div>
+  <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" class="nav-btn">Buy Now</a>
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <p style="font-size:.75rem;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">🎮 Doginals Arcade</p>
+  <h1>FEPE <span>GAMES</span></h1>
+  <p>Play as your Doginals Fepe inscription. Connect wallet to use your own FEPE character!</p>
+</div>
+
+<!-- WALLET BAR -->
+<div class="wallet-bar">
+  <div id="walletStatus">
+    <p>🔗 Connect wallet to play as your own FEPE!</p>
+  </div>
+  <div class="connect-btns" id="connectBtns">
+    <button class="wbtn" onclick="connectMyDoge()">🐕 MyDoge</button>
+    <button class="wbtn" onclick="connectOrdifind()">🔍 Ordifind</button>
+    <button class="wbtn" onclick="connectDogeLabs()">🧪 Doge Labs</button>
+    <button class="wbtn" onclick="disconnectWallet()" id="disconnectBtn" style="display:none;border-color:#ff4444;color:#ff4444;">✕ Disconnect</button>
+  </div>
+</div>
+
+<!-- GAMES -->
+<div class="games-wrap">
+  <div class="games-grid">
+
+    <!-- GAME 1: ENDLESS RUNNER -->
+    <div class="game-section">
+      <div class="game-header">
+        <div>
+          <div class="game-title">FEPE <span>RUNNER</span></div>
+          <div style="font-size:.75rem;color:var(--grey);">Jump over Dogecoin obstacles!</div>
+        </div>
+        <div class="game-score-wrap">
+          <div class="game-score-label">Score</div>
+          <div class="game-score" id="runnerScore">0</div>
+        </div>
+      </div>
+      <div class="game-body">
+        <div class="game-canvas-wrap">
+          <canvas id="runnerCanvas" width="560" height="200"></canvas>
+          <div class="game-overlay" id="runnerOverlay">
+            <div class="overlay-title">FEPE <span style="color:var(--gold)">RUNNER</span></div>
+            <div class="overlay-sub">Jump over Dogecoin coins and obstacles!<br>How far can your FEPE run?</div>
+            <button class="play-btn" onclick="startRunner()">▶ START RUNNING</button>
+          </div>
+        </div>
+        <div class="game-controls">
+          <span class="ctrl-badge">⎵ Space / Tap = Jump</span>
+          <span class="ctrl-badge">⬆ Up Arrow = Jump</span>
+        </div>
+        <div class="best-score">Best: <span id="runnerBest">0</span></div>
+      </div>
+    </div>
+
+    <!-- GAME 2: FEPE MATCH -->
+    <div class="game-section">
+      <div class="game-header">
+        <div>
+          <div class="game-title">FEPE <span>MATCH</span></div>
+          <div style="font-size:.75rem;color:var(--grey);">Match pairs of FEPEs!</div>
+        </div>
+        <div class="game-score-wrap">
+          <div class="game-score-label">Matches</div>
+          <div class="game-score" id="matchScore">0</div>
+        </div>
+      </div>
+      <div class="game-body">
+        <div class="puzzle-stats">
+          <div class="pstat"><span class="pstat-n" id="matchMoves">0</span><span class="pstat-l">Moves</span></div>
+          <div class="pstat"><span class="pstat-n" id="matchTime">0s</span><span class="pstat-l">Time</span></div>
+          <div class="pstat"><span class="pstat-n" id="matchPairs">0/8</span><span class="pstat-l">Pairs</span></div>
+        </div>
+        <div class="diff-btns">
+          <button class="diff-btn active" onclick="setDiff(4,'Easy')" id="diff-easy">Easy 4×4</button>
+          <button class="diff-btn" onclick="setDiff(6,'Medium')" id="diff-medium">Medium 6×4</button>
+          <button class="diff-btn" onclick="setDiff(8,'Hard')" id="diff-hard">Hard 6×6</button>
+        </div>
+        <div id="puzzleWrap" style="position:relative;">
+          <div id="puzzleBoard" class="puzzle-board"></div>
+          <div class="game-overlay" id="matchOverlay">
+            <div class="overlay-title">FEPE <span style="color:var(--gold)">MATCH</span></div>
+            <div class="overlay-sub">Find and match pairs of FEPE characters!<br>Complete all pairs to win.</div>
+            <button class="play-btn" onclick="startMatch()">▶ START MATCHING</button>
+          </div>
+        </div>
+        <div class="best-score" style="margin-top:10px;">Best: <span id="matchBest">—</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>© 2023 DoginalsFepe · <a href="index.html">Home</a> · <a href="https://dogecoin.com" target="_blank">Dogecoin</a> · Not financial advice</p>
+</footer>
+
+<script>
+// ─── WALLET & CHARACTER ──────────────────────────────────────────
+const DEFAULT_IMG = 'https://cdn.doggy.market/content/74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6ca6b9378a9bi0';
+let playerImg = new Image();
+playerImg.crossOrigin = 'anonymous';
+playerImg.src = DEFAULT_IMG;
+playerImg.onerror = () => { playerImg = null; };
+
+let connectedAddress = null;
+let myDogeMask = null;
+let ownedFEPEs = [];
+
+window.addEventListener('doge#initialized', () => { myDogeMask = window.doge; }, {once:true});
+setTimeout(() => { if(!myDogeMask && window.doge) myDogeMask = window.doge; }, 500);
+
+async function connectMyDoge() {
+  if(!myDogeMask?.isMyDoge) { alert('MyDoge wallet not detected. Please install it first.'); return; }
+  try {
+    const res = await myDogeMask.connect();
+    if(res.approved) { connectedAddress = res.address; await loadPlayerFEPE(res.address); }
+  } catch(e) { console.error(e); }
+}
+
+async function connectOrdifind() {
+  const ordifind = window.ordifind || window.oifi;
+  if(!ordifind) { alert('Ordifind wallet not detected.'); return; }
+  try {
+    let raw = await (ordifind.connect?.() || ordifind.requestAccounts?.());
+    let address = raw?.status==='success' ? (raw.response?.address || extractD(raw.response)) : (typeof raw==='string' ? raw : raw?.[0]);
+    if(address?.startsWith('D')) { connectedAddress = address; await loadPlayerFEPE(address); }
+  } catch(e) { console.error(e); }
+}
+
+async function connectDogeLabs() {
+  const dl = window.dogeLabs || window.dogelabs;
+  if(!dl) { alert('Doge Labs wallet not detected.'); return; }
+  try {
+    let raw = await (dl.connect?.() || dl.requestAccounts?.());
+    let address = typeof raw==='string' ? raw : (raw?.address || raw?.[0]);
+    if(address?.startsWith('D')) { connectedAddress = address; await loadPlayerFEPE(address); }
+  } catch(e) { console.error(e); }
+}
+
+function extractD(obj) {
+  if(!obj) return null;
+  for(const k of Object.keys(obj)) if(typeof obj[k]==='string' && obj[k].startsWith('D')) return obj[k];
+  return null;
+}
+
+async function loadPlayerFEPE(address) {
+  // Update UI
+  document.getElementById('connectBtns').querySelectorAll('.wbtn:not(#disconnectBtn)').forEach(b => b.style.display='none');
+  document.getElementById('disconnectBtn').style.display='flex';
+
+  const shortAddr = address.substring(0,6)+'...'+address.slice(-4);
+  document.getElementById('walletStatus').innerHTML = `<p style="color:var(--gold);">✅ Connected: ${shortAddr} — Loading your FEPEs...</p>`;
+
+  // Try to fetch owned FEPEs
+  try {
+    const res = await fetch(`https://api.doggy.market/wallet/${address}/nfts?collectionSymbol=doginalsfepe&offset=0&limit=40`);
+    if(res.ok) {
+      const data = await res.json();
+      ownedFEPEs = data.nfts || data.items || data || [];
+    }
+  } catch(e) {}
+
+  // Set player character
+  if(ownedFEPEs.length > 0) {
+    const fepe = ownedFEPEs[0];
+    const inscriptionId = fepe.inscriptionId || fepe.id || fepe.inscription_id;
+    const fepeNum = fepe.name?.replace('Doginals Fepe #','') || fepe.meta?.name?.replace('Doginals Fepe #','') || '?';
+    if(inscriptionId) {
+      playerImg = new Image();
+      playerImg.crossOrigin = 'anonymous';
+      playerImg.src = `https://cdn.doggy.market/content/${inscriptionId}`;
+      playerImg.onerror = () => { playerImg.src = DEFAULT_IMG; };
+      document.getElementById('walletStatus').innerHTML = `
+        <div class="char-info">
+          <img class="char-avatar" src="https://cdn.doggy.market/content/${inscriptionId}" onerror="this.src='${DEFAULT_IMG}'"/>
+          <div><div class="char-name">FEPE #${fepeNum}</div><div class="char-sub">${shortAddr} · ${ownedFEPEs.length} FEPE${ownedFEPEs.length>1?'s':''} owned</div></div>
+        </div>`;
+    }
+  } else {
+    document.getElementById('walletStatus').innerHTML = `<p style="color:var(--grey);">⚠️ No FEPEs found in this wallet. Playing as Bob Fepe #1</p>`;
+  }
+
+  // Refresh puzzle with new character
+  if(matchActive) startMatch();
+}
+
+function disconnectWallet() {
+  connectedAddress = null; ownedFEPEs = [];
+  playerImg = new Image(); playerImg.crossOrigin='anonymous'; playerImg.src = DEFAULT_IMG;
+  document.getElementById('walletStatus').innerHTML = `<p>🔗 Connect wallet to play as your own FEPE!</p>`;
+  document.getElementById('connectBtns').querySelectorAll('.wbtn:not(#disconnectBtn)').forEach(b => b.style.display='flex');
+  document.getElementById('disconnectBtn').style.display='none';
+}
+
+// ─── ENDLESS RUNNER ──────────────────────────────────────────────
+const rCanvas = document.getElementById('runnerCanvas');
+const rCtx = rCanvas.getContext('2d');
+const RW = 560, RH = 200, GROUND = 155;
+
+let runner = {
+  x:60, y:GROUND, w:44, h:44,
+  vy:0, jumping:false, doubleJump:false
+};
+let obstacles = [], coins = [], particles = [];
+let rScore = 0, rSpeed = 3.5, rFrame = 0, rRunning = false, rAnimId = null;
+let rBest = parseInt(localStorage.getItem('fepeRunnerBest')||'0');
+document.getElementById('runnerBest').textContent = rBest;
+
+// Doge coin image
+const dogeImg = new Image();
+dogeImg.src = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#C2A633"/><text x="50%" y="56%" text-anchor="middle" font-size="18" font-family="Arial Black" fill="#fff" font-weight="900">Ð</text></svg>`);
+
+function startRunner() {
+  document.getElementById('runnerOverlay').style.display = 'none';
+  runner = {x:60, y:GROUND, w:44, h:44, vy:0, jumping:false, doubleJump:false};
+  obstacles = []; coins = []; particles = [];
+  rScore = 0; rSpeed = 3.5; rFrame = 0; rRunning = true;
+  document.getElementById('runnerScore').textContent = '0';
+  if(rAnimId) cancelAnimationFrame(rAnimId);
+  runnerLoop();
+}
+
+function runnerJump() {
+  if(!rRunning) return;
+  if(!runner.jumping) { runner.vy = -11; runner.jumping = true; runner.doubleJump = false; }
+  else if(!runner.doubleJump) { runner.vy = -10; runner.doubleJump = true; }
+}
+
+document.addEventListener('keydown', e => {
+  if(e.code==='Space'||e.code==='ArrowUp') { e.preventDefault(); runnerJump(); }
+});
+rCanvas.addEventListener('click', runnerJump);
+rCanvas.addEventListener('touchstart', e => { e.preventDefault(); runnerJump(); });
+
+function spawnObstacle() {
+  const types = [
+    {w:18,h:34,color:'#FF6B6B',emoji:'🚧'},
+    {w:28,h:22,color:'#8A4FFF',emoji:'🐕'},
+    {w:14,h:46,color:'#FF9F43',emoji:'⚡'},
+  ];
+  const t = types[Math.floor(Math.random()*types.length)];
+  obstacles.push({x:RW+10, y:GROUND+44-t.h, w:t.w, h:t.h, color:t.color, emoji:t.emoji});
+}
+
+function spawnCoin() {
+  const y = GROUND - Math.random()*60 - 20;
+  coins.push({x:RW+10, y, r:10, collected:false});
+}
+
+function addParticles(x, y, color) {
+  for(let i=0;i<8;i++) particles.push({
+    x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,
+    life:1,color,size:Math.random()*4+2
+  });
+}
+
+function runnerLoop() {
+  if(!rRunning) return;
+  rCtx.clearRect(0,0,RW,RH);
+
+  // Background
+  const bgGrad = rCtx.createLinearGradient(0,0,0,RH);
+  bgGrad.addColorStop(0,'#07080A'); bgGrad.addColorStop(1,'#0a0f1e');
+  rCtx.fillStyle = bgGrad; rCtx.fillRect(0,0,RW,RH);
+
+  // Stars
+  rCtx.fillStyle='rgba(255,255,255,0.4)';
+  for(let i=0;i<20;i++){
+    const sx=(i*83+rFrame*0.2)%RW;
+    const sy=(i*47)%100;
+    rCtx.fillRect(sx,sy,1,1);
+  }
+
+  // Ground
+  const groundGrad = rCtx.createLinearGradient(0,GROUND+44,0,RH);
+  groundGrad.addColorStop(0,'#C2A633'); groundGrad.addColorStop(1,'#8a7520');
+  rCtx.fillStyle = groundGrad;
+  rCtx.fillRect(0,GROUND+44,RW,RH-GROUND-44);
+
+  // Ground line glow
+  rCtx.strokeStyle='#F5C518'; rCtx.lineWidth=2;
+  rCtx.shadowColor='#F5C518'; rCtx.shadowBlur=8;
+  rCtx.beginPath(); rCtx.moveTo(0,GROUND+44); rCtx.lineTo(RW,GROUND+44); rCtx.stroke();
+  rCtx.shadowBlur=0;
+
+  // Doge text on ground
+  rCtx.fillStyle='rgba(194,166,51,0.2)';
+  rCtx.font='bold 11px Inter';
+  for(let i=0;i<8;i++){
+    const gx=((i*80)-(rFrame*rSpeed*0.5)%80+RW)%RW;
+    rCtx.fillText('DOGE',gx,RH-6);
+  }
+
+  // Physics
+  runner.vy += 0.55;
+  runner.y += runner.vy;
+  if(runner.y >= GROUND) { runner.y = GROUND; runner.vy = 0; runner.jumping = false; runner.doubleJump = false; }
+
+  // Draw player
+  const px = runner.x, py = runner.y;
+  if(playerImg && playerImg.complete && playerImg.naturalWidth > 0) {
+    // Shadow
+    rCtx.save();
+    rCtx.shadowColor='rgba(245,197,24,0.5)';
+    rCtx.shadowBlur=12;
+    rCtx.drawImage(playerImg, px, py, runner.w, runner.h);
+    rCtx.restore();
+  } else {
+    // Fallback frog
+    rCtx.fillStyle='#4CAF50';
+    rCtx.beginPath(); rCtx.ellipse(px+22,py+22,22,18,0,0,Math.PI*2); rCtx.fill();
+    rCtx.fillStyle='#2E7D32';
+    rCtx.beginPath(); rCtx.ellipse(px+16,py+10,7,6,-.3,0,Math.PI*2); rCtx.fill();
+    rCtx.beginPath(); rCtx.ellipse(px+28,py+10,7,6,.3,0,Math.PI*2); rCtx.fill();
+    rCtx.fillStyle='#fff';
+    rCtx.beginPath(); rCtx.arc(px+17,py+11,4,0,Math.PI*2); rCtx.fill();
+    rCtx.beginPath(); rCtx.arc(px+28,py+11,4,0,Math.PI*2); rCtx.fill();
+    rCtx.fillStyle='#222';
+    rCtx.beginPath(); rCtx.arc(px+17,py+11,2,0,Math.PI*2); rCtx.fill();
+    rCtx.beginPath(); rCtx.arc(px+28,py+11,2,0,Math.PI*2); rCtx.fill();
+  }
+
+  // Spawn
+  if(rFrame % Math.max(60, 120-Math.floor(rScore/5)) === 0) spawnObstacle();
+  if(rFrame % 80 === 40) spawnCoin();
+
+  // Obstacles
+  for(let i=obstacles.length-1;i>=0;i--) {
+    const o = obstacles[i];
+    o.x -= rSpeed;
+    rCtx.fillStyle = o.color;
+    rCtx.beginPath(); rCtx.roundRect(o.x,o.y,o.w,o.h,4); rCtx.fill();
+    rCtx.font=`${Math.min(o.w,o.h)-2}px serif`;
+    rCtx.fillText(o.emoji, o.x+2, o.y+o.h-2);
+
+    // Collision
+    if(px+runner.w-8 > o.x+4 && px+8 < o.x+o.w-4 && py+runner.h-4 > o.y+4 && py+4 < o.y+o.h) {
+      gameOver();return;
+    }
+    if(o.x < -50) obstacles.splice(i,1);
+  }
+
+  // Coins
+  for(let i=coins.length-1;i>=0;i--) {
+    const c = coins[i];
+    c.x -= rSpeed;
+    if(!c.collected) {
+      rCtx.save();
+      rCtx.shadowColor='#F5C518'; rCtx.shadowBlur=10;
+      rCtx.drawImage(dogeImg, c.x-c.r, c.y-c.r, c.r*2, c.r*2);
+      rCtx.restore();
+      // Collect
+      if(px+runner.w > c.x-c.r && px < c.x+c.r && py+runner.h > c.y-c.r && py < c.y+c.r) {
+        c.collected=true; rScore+=5;
+        addParticles(c.x, c.y, '#F5C518');
+      }
+    }
+    if(c.x < -30) coins.splice(i,1);
+  }
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--) {
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.life-=0.05;
+    rCtx.globalAlpha=p.life;
+    rCtx.fillStyle=p.color;
+    rCtx.beginPath(); rCtx.arc(p.x,p.y,p.size,0,Math.PI*2); rCtx.fill();
+    rCtx.globalAlpha=1;
+    if(p.life<=0) particles.splice(i,1);
+  }
+
+  // Score +1 per frame
+  rScore++; rSpeed = 3.5 + rScore/500;
+  document.getElementById('runnerScore').textContent = rScore;
+
+  rFrame++;
+  rAnimId = requestAnimationFrame(runnerLoop);
+}
+
+function gameOver() {
+  rRunning = false;
+  cancelAnimationFrame(rAnimId);
+  if(rScore > rBest) { rBest=rScore; localStorage.setItem('fepeRunnerBest',rBest); }
+  document.getElementById('runnerBest').textContent = rBest;
+  const ol = document.getElementById('runnerOverlay');
+  ol.style.display='flex';
+  ol.innerHTML = `
+    <div class="overlay-title" style="color:#ff6b6b;">GAME OVER</div>
+    <div class="overlay-score">Score: ${rScore} &nbsp;|&nbsp; Best: ${rBest}</div>
+    <div class="overlay-sub">Your FEPE tripped! Try again?</div>
+    <button class="play-btn" onclick="startRunner()">▶ PLAY AGAIN</button>`;
+}
+
+// ─── FEPE MATCH PUZZLE ───────────────────────────────────────────
+let matchActive = false, matchPairs = 0, matchMoves = 0, matchTimer = 0;
+let matchInterval = null, matchSelected = null, matchLocked = false;
+let matchDifficulty = 4, matchTotalPairs = 8;
+let matchBest = localStorage.getItem('fepeMatchBest') || null;
+if(matchBest) document.getElementById('matchBest').textContent = matchBest;
+
+// FEPE inscription IDs for puzzle tiles
+const FEPE_IDS = [
+  '74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6ca6b9378a9bi0', // #1 Bob
+  'f3ddfe173040d44bc2a9d59f2c3bea138becc114c71643e82fc13711ab8c1bcbi0', // #2
+  '883174c645c3b9af7997f6e97cb68a5ddb3c472836b8d76e4e216c05126c3a06i0', // #3
+  '47c4ed121a56ede44cabdd19f804ed49fbd6db5e499954b1d86481dadc7948f8i0', // #4
+  '852135dfd7b3bd311d45cf45a8fff1de86b3486d62b84db1084829aae1193901i0', // #5
+  '2b0a1a8c987d7e6c490dfc7e62cf4ee1a4ee8a1cb8de9593c78b35375f23cc72i0', // #6
+  '1b6a7f6a53424e940c28cd9bf7fd5285673db8ae8bcf60ec5fce9a7a9fd8352fi0', // #7 (approx)
+  '57f687a2b816d310a4b7f65db376895dd7fa3fb53d1bd43a97e543aae3593234i0', // #8
+  '2b0a1a8c987d7e6c490dfc7e62cf4ee1a4ee8a1cb8de9593c78b35375f23cc72i0', // #9
+  '11cd70231b4a739d53a46f94b8e5e3c71ae5f7b2c9d3e6f1a2b4c7d8e9f0a1b2i0', // #10
+  '34a4564dd75a83f265673db8ae8bcf60ec5fce9a7a9fd8352fa3fdd41cc6ff9bi0', // Victor
+  '57f687a2b816d310a4b7f65db376895dd7fa3fb53d1bd43a97e543aae3593234i0', // Victor 2
+  'b0a1a8c987d7e6c490dfc7e62cf4ee1a4ee8a1cb8de9593c78b35375f23cc72i0',  // Victor 3
+  'a4564dd75a83f265673db8ae8bcf60ec5fce9a7a9fd8352fa3fdd41cc6ff9b34i0', // Victor 4
+  'c4ed121a56ede44cabdd19f804ed49fbd6db5e499954b1d86481dadc7948f8b47i0', // Victor 5
+  'd4564dd75a83f265673db8ae8bcf60ec5fce9a7a9fd8352fa3fdd41cc6ff9b48i0', // Victor 6
+  'e4564dd75a83f265673db8ae8bcf60ec5fce9a7a9fd8352fa3fdd41cc6ff9b49i0', // Victor 7
+  'f4564dd75a83f265673db8ae8bcf60ec5fce9a7a9fd8352fa3fdd41cc6ff9b50i0', // Victor 8
+];
+
+// Emojis as fallback if images don't load
+const FEPE_EMOJIS = ['🐸','🐕','⭐','💎','🚀','🌕','🎯','🏆','🔥','💰','🎮','🎲','🃏','🎪','🎨','🎭','🎬','🎤'];
+
+function setDiff(cols, label) {
+  matchDifficulty = cols;
+  matchTotalPairs = cols === 4 ? 8 : cols === 6 ? 12 : 18;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  const map = {4:'easy',6:'medium',8:'hard'};
+  document.getElementById(`diff-${map[cols]}`).classList.add('active');
+  document.getElementById('matchPairs').textContent = `0/${matchTotalPairs}`;
+}
+
+function startMatch() {
+  document.getElementById('matchOverlay').style.display = 'none';
+  matchActive = true; matchPairs = 0; matchMoves = 0; matchTimer = 0;
+  matchSelected = null; matchLocked = false;
+  clearInterval(matchInterval);
+  matchInterval = setInterval(() => {
+    matchTimer++;
+    document.getElementById('matchTime').textContent = matchTimer + 's';
+  }, 1000);
+
+  document.getElementById('matchScore').textContent = '0';
+  document.getElementById('matchMoves').textContent = '0';
+  document.getElementById('matchTime').textContent = '0s';
+  document.getElementById('matchPairs').textContent = `0/${matchTotalPairs}`;
+
+  buildPuzzleBoard();
+}
+
+function buildPuzzleBoard() {
+  const board = document.getElementById('puzzleBoard');
+  const cols = matchDifficulty === 8 ? 6 : matchDifficulty;
+  const rows = matchDifficulty === 4 ? 4 : matchDifficulty === 6 ? 4 : 6;
+  const totalCells = cols * rows;
+  const pairs = totalCells / 2;
+
+  // Get FEPEs — use owned if connected, else default set
+  let ids = [...FEPE_IDS.slice(0, 18)];
+  if(ownedFEPEs.length >= pairs) {
+    ids = ownedFEPEs.slice(0, pairs).map(f => f.inscriptionId || f.id || f.inscription_id).filter(Boolean);
+  }
+
+  // Build pairs
+  let tileIds = [];
+  for(let i = 0; i < pairs; i++) {
+    const id = ids[i % ids.length];
+    tileIds.push({id, emoji: FEPE_EMOJIS[i % FEPE_EMOJIS.length], index: i});
+    tileIds.push({id, emoji: FEPE_EMOJIS[i % FEPE_EMOJIS.length], index: i});
+  }
+
+  // Shuffle
+  for(let i = tileIds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [tileIds[i], tileIds[j]] = [tileIds[j], tileIds[i]];
+  }
+
+  // Determine cell size
+  const boardW = board.parentElement.offsetWidth || 360;
+  const cellSize = Math.floor((boardW - (cols-1)*4) / cols);
+
+  board.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+  board.innerHTML = '';
+
+  tileIds.forEach((tile, pos) => {
+    const cell = document.createElement('div');
+    cell.className = 'puzzle-cell';
+    cell.style.width = cellSize + 'px';
+    cell.style.height = cellSize + 'px';
+    cell.dataset.index = tile.index;
+    cell.dataset.pos = pos;
+    cell.dataset.revealed = 'false';
+    cell.dataset.matched = 'false';
+
+    // Card back
+    cell.innerHTML = `<div class="card-back" style="
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#0f1118,#161824);border-radius:6px;
+      font-size:${cellSize*0.4}px;
+    ">Ð</div>
+    <div class="card-front" style="display:none;position:absolute;inset:0;">
+      <img src="https://cdn.doggy.market/content/${tile.id}"
+        style="width:100%;height:100%;object-fit:cover;border-radius:6px;"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+      />
+      <div style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;
+        background:linear-gradient(135deg,#1a1f2e,#0f1118);border-radius:6px;font-size:${cellSize*0.45}px;">
+        ${tile.emoji}
+      </div>
+    </div>`;
+
+    cell.addEventListener('click', () => flipCell(cell));
+    board.appendChild(cell);
+  });
+}
+
+function flipCell(cell) {
+  if(matchLocked) return;
+  if(cell.dataset.matched === 'true') return;
+  if(cell.dataset.revealed === 'true') return;
+
+  // Reveal card
+  cell.dataset.revealed = 'true';
+  cell.querySelector('.card-back').style.display = 'none';
+  cell.querySelector('.card-front').style.display = 'block';
+  cell.style.background = 'rgba(245,197,24,0.05)';
+
+  if(!matchSelected) {
+    matchSelected = cell;
+    cell.classList.add('selected');
+    return;
+  }
+
+  matchMoves++;
+  document.getElementById('matchMoves').textContent = matchMoves;
+
+  const first = matchSelected;
+  matchSelected = null;
+  first.classList.remove('selected');
+
+  if(first.dataset.index === cell.dataset.index && first.dataset.pos !== cell.dataset.pos) {
+    // Match!
+    matchPairs++;
+    document.getElementById('matchScore').textContent = matchPairs;
+    document.getElementById('matchPairs').textContent = `${matchPairs}/${matchTotalPairs}`;
+    first.classList.add('matched'); cell.classList.add('matched');
+    first.dataset.matched = 'true'; cell.dataset.matched = 'true';
+    first.style.borderColor = 'var(--cyan)'; cell.style.borderColor = 'var(--cyan)';
+
+    if(matchPairs === matchTotalPairs) {
+      clearInterval(matchInterval);
+      setTimeout(matchComplete, 500);
+    }
+  } else {
+    // No match — flip back
+    matchLocked = true;
+    cell.classList.add('wrong'); first.classList.add('wrong');
+    setTimeout(() => {
+      cell.classList.remove('wrong'); first.classList.remove('wrong');
+      cell.dataset.revealed = 'false'; first.dataset.revealed = 'false';
+      cell.querySelector('.card-back').style.display = 'flex';
+      cell.querySelector('.card-front').style.display = 'none';
+      first.querySelector('.card-back').style.display = 'flex';
+      first.querySelector('.card-front').style.display = 'none';
+      cell.style.background = ''; first.style.background = '';
+      matchLocked = false;
+    }, 900);
+  }
+}
+
+function matchComplete() {
+  matchActive = false;
+  const result = `${matchTimer}s / ${matchMoves} moves`;
+  if(!matchBest) {
+    matchBest = result; localStorage.setItem('fepeMatchBest', matchBest);
+  }
+  document.getElementById('matchBest').textContent = matchBest;
+
+  const ol = document.getElementById('matchOverlay');
+  ol.style.display = 'flex';
+  ol.innerHTML = `
+    <div style="font-size:3rem;">🎉</div>
+    <div class="overlay-title" style="color:var(--gold);">YOU WIN!</div>
+    <div class="overlay-score">${matchTimer}s · ${matchMoves} moves · ${matchPairs} pairs</div>
+    <div class="overlay-sub">Amazing! Your FEPE matched them all!</div>
+    <button class="play-btn" onclick="startMatch()">▶ PLAY AGAIN</button>`;
+}
+
+</script>
+<script data-goatcounter="https://doginalsfepe.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

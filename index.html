@@ -487,6 +487,13 @@ footer{
 }
 .foot-copy{color:#445566;font-size:.78rem;}
 .foot-copy a{color:#556677;text-decoration:none;}
+.visitor-counter{
+  font-size:.78rem;color:var(--grey);
+  margin:8px 0;letter-spacing:1px;
+}
+.visitor-counter span{
+  color:var(--gold);font-weight:700;font-family:'Bangers',cursive;font-size:1rem;
+}
 .foot-doge{
   font-family:'Arial Black',sans-serif;font-weight:900;
   font-size:1.1rem;color:var(--gold);opacity:.4;letter-spacing:2px;
@@ -999,6 +1006,9 @@ footer{
   </div>
   <div class="foot-bottom">
     <p class="foot-copy">© 2023 DoginalsFepe · <a href="https://dogecoin.com" target="_blank">Dogecoin</a> · Not financial advice</p>
+    <div class="visitor-counter">
+      👥 <span id="visitorCount">...</span> visitors
+    </div>
     <div class="foot-doge">Ð TO THE MOON</div>
   </div>
 </footer>
@@ -1058,6 +1068,21 @@ function closeMenu(){
 window.addEventListener('resize', () => {
   if(window.innerWidth > 700) closeMenu();
 });
+</script>
+<!-- GoatCounter tracking -->
+<script data-goatcounter="https://doginalsfepe.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<!-- Fetch visitor count -->
+<script>
+fetch('https://doginalsfepe.goatcounter.com/counter/TOTAL.json')
+  .then(r => r.json())
+  .then(d => {
+    const el = document.getElementById('visitorCount');
+    if(el && d.count) el.textContent = parseInt(d.count).toLocaleString();
+  })
+  .catch(() => {
+    const el = document.getElementById('visitorCount');
+    if(el) el.textContent = '—';
+  });
 </script>
 </body>
 </html>

@@ -826,7 +826,7 @@ let birds = [], currentBird = null;
 let dragStart = null, dragCurrent = null, isDragging = false;
 
 // Physics objects
-let blocks = [], targets = [], particles = [];
+let blocks = [], targets = [], angryParticles = [];
 let angryAnimId = null;
 
 // Level configs
@@ -894,7 +894,7 @@ function initLevel(lvl) {
   }));
   blocks = cfg.blocks.map(b => ({...b, maxHp: b.hp, vx:0, vy:0, settled:true, active:true}));
   targets = cfg.targets.map(t => ({...t, maxHp:t.hp, vx:0, vy:0, settled:true, dead:false}));
-  particles = [];
+  angryParticles = [];
   currentBird = birds[0];
   currentBird.active = true;
   currentBird.x = SLING_X;
@@ -1018,7 +1018,7 @@ function nextBird() {
 
 function addParticle(x, y, color, count=8) {
   for(let i=0;i<count;i++) {
-    particles.push({
+    angryParticles.push({
       x,y,
       vx:(Math.random()-0.5)*6,
       vy:(Math.random()-0.5)*6 - 2,
@@ -1311,14 +1311,14 @@ function angryLoop() {
   });
 
   // ── PARTICLES ──
-  for(let i=particles.length-1;i>=0;i--) {
-    const p=particles[i];
+  for(let i=angryParticles.length-1;i>=0;i--) {
+    const p=angryParticles[i];
     p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.life-=0.03;
     aCtx.globalAlpha=p.life;
     aCtx.fillStyle=p.color;
     aCtx.beginPath(); aCtx.arc(p.x,p.y,p.size,0,Math.PI*2); aCtx.fill();
     aCtx.globalAlpha=1;
-    if(p.life<=0) particles.splice(i,1);
+    if(p.life<=0) angryParticles.splice(i,1);
   }
 
   angryAnimId = requestAnimationFrame(angryLoop);

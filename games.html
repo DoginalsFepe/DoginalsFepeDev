@@ -472,6 +472,7 @@ function addParticles(x, y, color) {
 
 function runnerLoop() {
   if(!rRunning) return;
+  try {
   rCtx.clearRect(0,0,RW,RH);
 
   // Background
@@ -545,7 +546,7 @@ function runnerLoop() {
     const o = obstacles[i];
     o.x -= rSpeed;
     rCtx.fillStyle = o.color;
-    rCtx.beginPath(); rCtx.roundRect(o.x,o.y,o.w,o.h,4); rCtx.fill();
+    rCtx.beginPath(); rCtx.rect(o.x,o.y,o.w,o.h); rCtx.fill();
     rCtx.font=`${Math.min(o.w,o.h)-2}px serif`;
     rCtx.fillText(o.emoji, o.x+2, o.y+o.h-2);
 
@@ -591,6 +592,7 @@ function runnerLoop() {
 
   rFrame++;
   rAnimId = requestAnimationFrame(runnerLoop);
+  } catch(e) { console.error('Runner error:',e); }
 }
 
 function gameOver() {
@@ -890,7 +892,7 @@ function initLevel(lvl) {
     r: 14, launched: false, active: false,
     vx:0, vy:0, trail:[]
   }));
-  blocks = cfg.blocks.map(b => ({...b, maxHp: b.hp, vx:0, vy:0, settled:true}));
+  blocks = cfg.blocks.map(b => ({...b, maxHp: b.hp, vx:0, vy:0, settled:true, active:true}));
   targets = cfg.targets.map(t => ({...t, maxHp:t.hp, vx:0, vy:0, settled:true, dead:false}));
   particles = [];
   currentBird = birds[0];
@@ -1126,6 +1128,7 @@ function gameOverAngry() {
 }
 
 function angryLoop() {
+  try {
   aCtx.clearRect(0,0,AW,AH);
 
   // ── BACKGROUND ──
@@ -1206,9 +1209,9 @@ function angryLoop() {
     const colors = {wood:['#8B6914','#A0781E'], stone:['#555','#777'], glass:['rgba(180,220,255,0.6)','rgba(200,240,255,0.8)']};
     const c = colors[bl.type]||colors.wood;
     aCtx.fillStyle = c[0];
-    aCtx.beginPath(); aCtx.roundRect(bl.x,bl.y,bl.w,bl.h,3); aCtx.fill();
+    aCtx.beginPath(); aCtx.rect(bl.x,bl.y,bl.w,bl.h); aCtx.fill();
     aCtx.strokeStyle = c[1]; aCtx.lineWidth=1.5;
-    aCtx.beginPath(); aCtx.roundRect(bl.x,bl.y,bl.w,bl.h,3); aCtx.stroke();
+    aCtx.beginPath(); aCtx.rect(bl.x,bl.y,bl.w,bl.h); aCtx.stroke();
     // Damage cracks
     const dmgPct = 1 - bl.hp/bl.maxHp;
     if(dmgPct > 0.3) {
@@ -1319,6 +1322,7 @@ function angryLoop() {
   }
 
   angryAnimId = requestAnimationFrame(angryLoop);
+  } catch(e) { console.error('Angry FEPE error:',e); }
 }
 
 function drawSlingshot() {

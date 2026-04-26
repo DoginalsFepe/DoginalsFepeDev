@@ -312,11 +312,18 @@ footer a{color:var(--gold);text-decoration:none;}
 
 <script>
 // ─── WALLET & CHARACTER ──────────────────────────────────────────
-const DEFAULT_IMG = 'https://cdn.doggy.market/content/74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6ca6b9378a9bi0';
+// Use local bob_1.png as default character (no CORS issues)
+const DEFAULT_IMG = 'bob_1.png';
+const DEFAULT_CDN = 'https://cdn.doggy.market/content/74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6ca6b9378a9bi0';
+
 let playerImg = new Image();
-playerImg.crossOrigin = 'anonymous';
 playerImg.src = DEFAULT_IMG;
-playerImg.onerror = () => { playerImg = null; };
+playerImg.onerror = () => {
+  // If local fails, try CDN via proxy
+  playerImg = new Image();
+  playerImg.crossOrigin = 'anonymous';
+  playerImg.src = `https://corsproxy.io/?${encodeURIComponent(DEFAULT_CDN)}`;
+};
 
 let connectedAddress = null;
 let myDogeMask = null;
@@ -382,10 +389,16 @@ async function loadPlayerFEPE(address) {
     const inscriptionId = fepe.inscriptionId || fepe.id || fepe.inscription_id;
     const fepeNum = fepe.name?.replace('Doginals Fepe #','') || fepe.meta?.name?.replace('Doginals Fepe #','') || '?';
     if(inscriptionId) {
+      const cdnUrl = `https://cdn.doggy.market/content/${inscriptionId}`;
       playerImg = new Image();
       playerImg.crossOrigin = 'anonymous';
-      playerImg.src = `https://cdn.doggy.market/content/${inscriptionId}`;
-      playerImg.onerror = () => { playerImg.src = DEFAULT_IMG; };
+      // Try CORS proxy first for canvas compatibility
+      playerImg.src = `https://corsproxy.io/?${encodeURIComponent(cdnUrl)}`;
+      playerImg.onerror = () => {
+        // Fallback to local bob_1.png
+        playerImg = new Image();
+        playerImg.src = 'bob_1.png';
+      };
       document.getElementById('walletStatus').innerHTML = `
         <div class="char-info">
           <img class="char-avatar" src="https://cdn.doggy.market/content/${inscriptionId}" onerror="this.src='${DEFAULT_IMG}'"/>
@@ -402,7 +415,7 @@ async function loadPlayerFEPE(address) {
 
 function disconnectWallet() {
   connectedAddress = null; ownedFEPEs = [];
-  playerImg = new Image(); playerImg.crossOrigin='anonymous'; playerImg.src = DEFAULT_IMG;
+  playerImg = new Image(); playerImg.src = 'bob_1.png';
   document.getElementById('walletStatus').innerHTML = `<p>🔗 Connect wallet to play as your own FEPE!</p>`;
   document.getElementById('connectBtns').querySelectorAll('.wbtn:not(#disconnectBtn)').forEach(b => b.style.display='flex');
   document.getElementById('disconnectBtn').style.display='none';
@@ -523,18 +536,19 @@ function runnerLoop() {
     rCtx.drawImage(playerImg, px, py, runner.w, runner.h);
     rCtx.restore();
   } else {
-    // Fallback frog
-    rCtx.fillStyle='#4CAF50';
-    rCtx.beginPath(); rCtx.ellipse(px+22,py+22,22,18,0,0,Math.PI*2); rCtx.fill();
-    rCtx.fillStyle='#2E7D32';
-    rCtx.beginPath(); rCtx.ellipse(px+16,py+10,7,6,-.3,0,Math.PI*2); rCtx.fill();
-    rCtx.beginPath(); rCtx.ellipse(px+28,py+10,7,6,.3,0,Math.PI*2); rCtx.fill();
-    rCtx.fillStyle='#fff';
-    rCtx.beginPath(); rCtx.arc(px+17,py+11,4,0,Math.PI*2); rCtx.fill();
-    rCtx.beginPath(); rCtx.arc(px+28,py+11,4,0,Math.PI*2); rCtx.fill();
-    rCtx.fillStyle='#222';
-    rCtx.beginPath(); rCtx.arc(px+17,py+11,2,0,Math.PI*2); rCtx.fill();
-    rCtx.beginPath(); rCtx.arc(px+28,py+11,2,0,Math.PI*2); rCtx.fill();
+    // Loading placeholder - gold FEPE coin
+    rCtx.save();
+    rCtx.shadowColor='rgba(245,197,24,0.6)'; rCtx.shadowBlur=14;
+    rCtx.fillStyle='#C2A633';
+    rCtx.beginPath(); rCtx.arc(px+22,py+22,22,0,Math.PI*2); rCtx.fill();
+    rCtx.fillStyle='#FFD700';
+    rCtx.beginPath(); rCtx.arc(px+22,py+22,18,0,Math.PI*2); rCtx.fill();
+    rCtx.fillStyle='#8B6914';
+    rCtx.font='bold 20px Bangers';
+    rCtx.textAlign='center'; rCtx.textBaseline='middle';
+    rCtx.fillText('🐸',px+22,py+23);
+    rCtx.restore();
+    rCtx.textAlign='left'; rCtx.textBaseline='alphabetic';
   }
 
   // Spawn
@@ -914,20 +928,22 @@ function startAngry() {
 
   // Input events
   aC.addEventListener('mousedown', angryMouseDown);
-  aC.addEventListener('mousemove', angryMouseMove);
-  aC.addEventListener('mouseup', angryMouseUp);
+  document.addEventListener('mousemove', angryMouseMove);
+  document.addEventListener('mouseup', angryMouseUp);
   aC.addEventListener('touchstart', angryTouchStart, {passive:false});
-  aC.addEventListener('touchmove', angryTouchMove, {passive:false});
-  aC.addEventListener('touchend', angryTouchEnd, {passive:false});
+  document.addEventListener('touchmove', angryTouchMove, {passive:false});
+  document.addEventListener('touchend', angryTouchEnd, {passive:false});
 }
 
 function getCanvasPos(e) {
   const rect = aC.getBoundingClientRect();
   const scaleX = AW / rect.width;
   const scaleY = AH / rect.height;
+  const clientX = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+  const clientY = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
   return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top) * scaleY
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY
   };
 }
 
@@ -935,7 +951,7 @@ function angryMouseDown(e) {
   if(angryState !== 'idle') return;
   const pos = getCanvasPos(e);
   const dx = pos.x - SLING_X, dy = pos.y - SLING_Y;
-  if(Math.sqrt(dx*dx+dy*dy) < 40) { isDragging=true; dragCurrent={x:SLING_X,y:SLING_Y}; }
+  if(Math.sqrt(dx*dx+dy*dy) < 60) { isDragging=true; dragCurrent={x:SLING_X,y:SLING_Y}; }
 }
 function angryMouseMove(e) {
   if(!isDragging) return;
@@ -952,7 +968,7 @@ function angryTouchStart(e) {
   if(angryState !== 'idle') return;
   const pos = getCanvasPos(e.touches[0]);
   const dx = pos.x - SLING_X, dy = pos.y - SLING_Y;
-  if(Math.sqrt(dx*dx+dy*dy) < 50) { isDragging=true; dragCurrent={x:SLING_X,y:SLING_Y}; }
+  if(Math.sqrt(dx*dx+dy*dy) < 70) { isDragging=true; dragCurrent={x:SLING_X,y:SLING_Y}; }
 }
 function angryTouchMove(e) {
   e.preventDefault();
@@ -1358,17 +1374,16 @@ function drawFepeBird(x, y, r, alpha=1) {
     aCtx.beginPath(); aCtx.arc(x,y,r,0,Math.PI*2); aCtx.clip();
     aCtx.drawImage(playerImg,x-r,y-r,r*2,r*2);
   } else {
-    // Fallback cute frog
-    aCtx.fillStyle='#4CAF50';
+    // Loading placeholder - gold FEPE coin style
+    aCtx.fillStyle='#C2A633';
     aCtx.beginPath(); aCtx.arc(x,y,r,0,Math.PI*2); aCtx.fill();
-    aCtx.fillStyle='#fff';
-    aCtx.beginPath(); aCtx.arc(x-r*0.3,y-r*0.2,r*0.35,0,Math.PI*2); aCtx.fill();
-    aCtx.beginPath(); aCtx.arc(x+r*0.3,y-r*0.2,r*0.35,0,Math.PI*2); aCtx.fill();
-    aCtx.fillStyle='#222';
-    aCtx.beginPath(); aCtx.arc(x-r*0.3,y-r*0.2,r*0.15,0,Math.PI*2); aCtx.fill();
-    aCtx.beginPath(); aCtx.arc(x+r*0.3,y-r*0.2,r*0.15,0,Math.PI*2); aCtx.fill();
-    aCtx.fillStyle='#FF6B6B';
-    aCtx.beginPath(); aCtx.arc(x,y+r*0.2,r*0.3,0,Math.PI); aCtx.fill();
+    aCtx.fillStyle='#FFD700';
+    aCtx.beginPath(); aCtx.arc(x,y,r*0.85,0,Math.PI*2); aCtx.fill();
+    aCtx.fillStyle='#8B6914';
+    aCtx.font=`bold ${r}px serif`;
+    aCtx.textAlign='center'; aCtx.textBaseline='middle';
+    aCtx.fillText('🐸',x,y+1);
+    aCtx.textAlign='left'; aCtx.textBaseline='alphabetic';
   }
 
   // Gold ring around bird

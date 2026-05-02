@@ -851,51 +851,67 @@ async function loadFEPEs(address) {
   document.getElementById('fepeEmpty').style.display = 'none';
   document.getElementById('otherSection').style.display = 'none';
 
-  // CORS proxy helper
+  // CORS proxy helper - returns array of URLs to try in order
+  // IMPORTANT: avoid custom headers that trigger CORS preflight (OPTIONS)
+  // Simple GET requests with only Accept header are "simple requests" - no preflight needed
   function proxied(url) {
+    const enc = encodeURIComponent(url);
     return [
-      url,
-      'https://corsproxy.io/?' + encodeURIComponent(url),
-      'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+      url,                                                          // 1. Direct (may work if API has CORS)
+      `https://api.allorigins.win/raw?url=${enc}`,                 // 2. allorigins - true server-side proxy
+      `https://api.allorigins.win/get?url=${enc}`,                 // 3. allorigins /get wrapper
+      `https://corsproxy.io/?${enc}`,                              // 4. corsproxy.io
+      `https://cors-anywhere.herokuapp.com/${url}`,                // 5. cors-anywhere (fallback)
     ];
   }
 
   // Fetch with multiple URL attempts, return parsed JSON or null
+  // NOTE: Only use 'Accept' header - adding Content-Type triggers CORS preflight which many proxies fail
   async function tryFetch(urls, label) {
     for (const url of urls) {
       try {
         const res = await fetch(url, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          signal: AbortSignal.timeout(10000)
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(12000)
         });
-        if (!res.ok) continue;
-        const data = await res.json();
+        if (!res.ok) { console.log(label, 'HTTP', res.status, url.substring(0,60)); continue; }
+        const text = await res.text();
+        if (!text || text.trim() === '') continue;
+
+        // allorigins /get wraps content in { contents: "...", status: {...} }
+        let parsed;
+        try { parsed = JSON.parse(text); } catch(e) { continue; }
+
+        // Unwrap allorigins /get wrapper
+        if (parsed?.contents && typeof parsed.contents === 'string') {
+          try { parsed = JSON.parse(parsed.contents); } catch(e) { continue; }
+        }
+
         console.log(label, 'OK via', url.substring(0,70));
-        return data;
+        return parsed;
       } catch(e) {
+        console.log(label, 'error:', e.message?.substring(0,50), url.substring(0,50));
         continue;
       }
     }
     return null;
   }
 
-  // Normalise any API response into a flat array of inscription items
+  // Normalise any API response into a flat array, or null if API unreachable/unknown format
   function parseItems(data) {
-    if (!data) return null;
-    if (Array.isArray(data)) return data.length > 0 ? data : null;
-    if (Array.isArray(data.data) && data.data.length > 0) return data.data;
-    if (Array.isArray(data.items) && data.items.length > 0) return data.items;
-    if (Array.isArray(data.nfts) && data.nfts.length > 0) return data.nfts;
-    if (Array.isArray(data.result) && data.result.length > 0) return data.result;
-    if (Array.isArray(data.inscriptions) && data.inscriptions.length > 0) return data.inscriptions;
-    if (data.data && typeof data.data === 'object' && Array.isArray(data.data.list) && data.data.list.length > 0) return data.data.list;
-    // Return empty array (not null) only if we got a valid but empty response
-    if (Array.isArray(data)) return [];
-    if (data.data !== undefined || data.items !== undefined || data.nfts !== undefined) return [];
-    return null;
+    if (data === null || data === undefined) return null;
+    if (Array.isArray(data)) return data; // could be empty = valid empty wallet
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data.nfts)) return data.nfts;
+    if (Array.isArray(data.result)) return data.result;
+    if (Array.isArray(data.inscriptions)) return data.inscriptions;
+    if (Array.isArray(data.ids)) return data.ids.map(id => ({ id, inscriptionId: id }));
+    if (data.data && typeof data.data === 'object' && Array.isArray(data.data.list)) return data.data.list;
+    // Has a recognised response structure but empty
+    if ('data' in data || 'items' in data || 'nfts' in data || 'result' in data) return [];
+    return null; // unrecognised format = treat as unreachable
   }
 
   // Normalise an item from any API into a standard shape: { id, inscriptionId, collectionId, name, number }
@@ -941,13 +957,12 @@ async function loadFEPEs(address) {
   let apiUsed = '';
 
   // ── SOURCE 1: Doggy Market /wallet/{addr}/nfts ──────────────────────────
-  // Returns listed + held NFTs indexed by Doggy Market
   async function fetchDoggyMarket() {
     let items = [];
     let offset = 0;
     while (true) {
       const url = `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
-      const data = await tryFetch(proxied(url), 'DoggyMarket');
+      const data = await tryFetch(proxied(url), 'DoggyMarket/nfts');
       const batch = parseItems(data);
       if (batch === null) return null; // API unreachable
       if (batch.length === 0) break;
@@ -955,17 +970,16 @@ async function loadFEPEs(address) {
       if (batch.length < 40) break;
       offset += 40;
     }
-    return items;
+    return items; // may be empty []
   }
 
   // ── SOURCE 2: Doggy Market /wallet/{addr}/inscriptions ───────────────────
-  // Some versions of the API expose a separate "all inscriptions" endpoint
   async function fetchDoggyInscriptions() {
     let items = [];
     let offset = 0;
     while (true) {
       const url = `https://api.doggy.market/wallet/${address}/inscriptions?offset=${offset}&limit=40`;
-      const data = await tryFetch(proxied(url), 'DoggyInscriptions');
+      const data = await tryFetch(proxied(url), 'DoggyMarket/inscriptions');
       const batch = parseItems(data);
       if (batch === null) return null;
       if (batch.length === 0) break;
@@ -977,7 +991,6 @@ async function loadFEPEs(address) {
   }
 
   // ── SOURCE 3: Ordifind ord indexer ──────────────────────────────────────
-  // Ordifind runs their own Dogecoin ord indexer with a public API
   async function fetchOrdifind() {
     let items = [];
     let offset = 0;
@@ -995,32 +1008,16 @@ async function loadFEPEs(address) {
   }
 
   // ── SOURCE 4: Doge Labs ord server ──────────────────────────────────────
-  // Doge Labs built and operate the primary Dogecoin ord indexer
-  // Supports standard ord JSON API with Accept: application/json header
   async function fetchDogeLabsOrd() {
     let items = [];
     let page = 0;
     while (true) {
-      // Standard ord server address endpoint - returns inscription IDs held by address
       const url = `https://ord.dogelabs.io/address/${address}?page=${page}`;
-      const data = await tryFetch(
-        proxied(url).map(u => u), // pass through proxied URLs
-        'DogeLabsOrd'
-      );
+      const data = await tryFetch(proxied(url), 'DogeLabsOrd');
       if (!data) return null;
-
-      // Ord server /address endpoint returns { inscriptions: [...ids], more: bool }
-      let ids = [];
-      if (Array.isArray(data.inscriptions)) ids = data.inscriptions;
-      else if (Array.isArray(data.ids)) ids = data.ids;
-      else if (Array.isArray(data)) ids = data;
-
+      let ids = data.inscriptions || data.ids || (Array.isArray(data) ? data : []);
       if (ids.length === 0) break;
-
-      // Convert IDs to normalised items (image served from doggy CDN)
-      const batch = ids.map(id => normaliseItem({ id, inscriptionId: id }, 'ord'));
-      items = items.concat(batch);
-
+      items = items.concat(ids.map(id => normaliseItem({ id, inscriptionId: id }, 'ord')));
       if (!data.more && !data.hasMore) break;
       page++;
     }
@@ -1028,7 +1025,6 @@ async function loadFEPEs(address) {
   }
 
   // ── SOURCE 5: drc-20.org indexer ────────────────────────────────────────
-  // drc-20.org runs an independent Dogecoin inscription indexer
   async function fetchDrc20Org() {
     let items = [];
     let page = 0;
@@ -1045,7 +1041,8 @@ async function loadFEPEs(address) {
     return items;
   }
 
-  // Try each source in order, use the first that returns data
+  // Try each source — use first that returns NON-EMPTY results
+  // (empty [] from Doggy Market is valid but means "not listed there", so keep trying)
   const sources = [
     { fn: fetchDoggyMarket,       name: 'Doggy Market /nfts' },
     { fn: fetchDoggyInscriptions, name: 'Doggy Market /inscriptions' },
@@ -1057,20 +1054,35 @@ async function loadFEPEs(address) {
   for (const source of sources) {
     try {
       const result = await source.fn();
-      if (result !== null) {          // null = API unreachable
-        allItems = result;
-        apiUsed = source.name;
-        console.log(`loadFEPEs: ${result.length} items from "${source.name}"`);
-        break;
+      if (result === null) {
+        console.log(`loadFEPEs: "${source.name}" unreachable`);
+        continue; // API down/blocked - try next
       }
+      if (result.length === 0) {
+        console.log(`loadFEPEs: "${source.name}" returned 0 items - trying next source`);
+        continue; // Valid empty response - wallet may have items on another indexer
+      }
+      allItems = result;
+      apiUsed = source.name;
+      console.log(`loadFEPEs: ${result.length} items from "${source.name}"`);
+      break;
     } catch(e) {
-      console.log(`loadFEPEs: ${source.name} error:`, e.message);
+      console.log(`loadFEPEs: "${source.name}" error:`, e.message);
     }
   }
 
   if (!apiUsed) {
-    console.warn('loadFEPEs: all sources failed');
-    renderFEPEs([], true, 0);
+    console.warn('loadFEPEs: all sources failed or returned 0 items');
+    // Show the empty state with a helpful message rather than generic API error
+    document.getElementById('fepeLoading').style.display = 'none';
+    const emptyEl = document.getElementById('fepeEmpty');
+    emptyEl.style.display = 'block';
+    document.getElementById('fepeSubtitle').textContent =
+      '⚠️ Could not fetch inscriptions — all indexers unreachable (CORS). Try refreshing or check back shortly.';
+    document.getElementById('fepeCount').textContent = '0';
+    document.getElementById('fepeBadge').textContent = '0 FEPEs';
+    document.getElementById('collectionPct').textContent = '0.00%';
+    document.getElementById('totalDoginals').textContent = '0';
     return;
   }
 

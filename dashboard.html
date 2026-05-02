@@ -665,6 +665,23 @@ async function connectNintondo() {
 }
 
 // 3. Ordifind
+// Shared helper: recursively finds a Dogecoin address (starts with 'D', 26+ chars) in any response object
+function findDogeAddr(obj, depth) {
+  if (depth > 5 || !obj) return null;
+  if (typeof obj === 'string' && obj.startsWith('D') && obj.length >= 26) return obj;
+  if (Array.isArray(obj)) {
+    for (const v of obj) { const r = findDogeAddr(v, depth+1); if (r) return r; }
+  } else if (typeof obj === 'object') {
+    for (const key of ['address','dogeAddress','account','addr','wallet','accounts','dogeAddr']) {
+      if (obj[key]) { const r = findDogeAddr(obj[key], depth+1); if (r) return r; }
+    }
+    for (const key of Object.keys(obj)) {
+      const r = findDogeAddr(obj[key], depth+1); if (r) return r;
+    }
+  }
+  return null;
+}
+
 async function connectOrdifind() {
   await new Promise(r => setTimeout(r, 300));
   const ordifind = window.ordifind || window.oifi || window.OIFI;
@@ -680,25 +697,6 @@ async function connectOrdifind() {
     if (ordifind.connect) raw = await ordifind.connect();
     else if (ordifind.requestAccounts) raw = await ordifind.requestAccounts();
     else if (ordifind.getAccounts) raw = await ordifind.getAccounts();
-
-    // Deep recursive search for a Dogecoin address (starts with 'D', 34 chars)
-    function findDogeAddr(obj, depth) {
-      if (depth > 5 || !obj) return null;
-      if (typeof obj === 'string' && obj.startsWith('D') && obj.length >= 26) return obj;
-      if (Array.isArray(obj)) {
-        for (const v of obj) { const r = findDogeAddr(v, depth+1); if (r) return r; }
-      } else if (typeof obj === 'object') {
-        // Check common keys first
-        for (const key of ['address','dogeAddress','account','addr','wallet','accounts','dogeAddr']) {
-          if (obj[key]) { const r = findDogeAddr(obj[key], depth+1); if (r) return r; }
-        }
-        // Fallback: all keys
-        for (const key of Object.keys(obj)) {
-          const r = findDogeAddr(obj[key], depth+1); if (r) return r;
-        }
-      }
-      return null;
-    }
 
     // Response format: {status: 'success', response: {address: '...', ...}}
     if (raw?.status === 'success' && raw?.response) {
@@ -729,8 +727,8 @@ async function connectOrdifind() {
 
 // 4. Doge Labs
 async function connectDogeLabs() {
-  // Doge Labs injects window.dogeLabs or window.dogelabs
-  const dogeLabs = window.dogeLabs || window.dogelabs || window.doge_labs;
+  // Doge Labs injects as window.dogeLabs, window.dogelabs, window.doge_labs, or window.unisat (some versions)
+  const dogeLabs = window.dogeLabs || window.dogelabs || window.doge_labs || window.DogeWallet;
   if (!dogeLabs) {
     showNoWallet('Doge Labs Wallet', 'https://chromewebstore.google.com/detail/doge-labs-wallet/jiepnaheligkibgcjgjepjfppgbcghmp');
     return;
@@ -738,17 +736,24 @@ async function connectDogeLabs() {
   try {
     showToast('Connecting to Doge Labs...');
     let address = null;
-    if (dogeLabs.connect) {
-      const res = await dogeLabs.connect();
-      address = res?.address || res;
-    } else if (dogeLabs.requestAccounts) {
-      const accounts = await dogeLabs.requestAccounts();
-      address = accounts?.[0];
+    let raw = null;
+
+    // Try all known connection methods in order
+    if (dogeLabs.requestAccounts) {
+      raw = await dogeLabs.requestAccounts();
+    } else if (dogeLabs.connect) {
+      raw = await dogeLabs.connect();
     } else if (dogeLabs.getAccounts) {
-      const accounts = await dogeLabs.getAccounts();
-      address = accounts?.[0];
+      raw = await dogeLabs.getAccounts();
+    } else if (dogeLabs.getAddress) {
+      raw = await dogeLabs.getAddress();
     }
-    if (address) {
+
+    // Use shared recursive finder to extract the D... address
+    address = findDogeAddr(raw, 0);
+    console.log('Doge Labs raw response:', JSON.stringify(raw), '→ address:', address);
+
+    if (address && typeof address === 'string' && address.startsWith('D')) {
       connectedAddress = address;
       showDashboard(address, '—', 'Doge Labs');
       fetchBalance(address);
@@ -758,6 +763,7 @@ async function connectDogeLabs() {
     }
   } catch(e) {
     showToast('Doge Labs connection cancelled or failed.');
+    console.error('Doge Labs error:', e);
   }
 }
 

@@ -681,27 +681,37 @@ async function connectOrdifind() {
     else if (ordifind.requestAccounts) raw = await ordifind.requestAccounts();
     else if (ordifind.getAccounts) raw = await ordifind.getAccounts();
 
-    // Response format: {status: 'success', response: {address: '...', ...}}
-    if (raw?.status === 'success' && raw?.response) {
-      const r = raw.response;
-      address = r.address || r.accounts?.[0] || r[0] || null;
-      // If response itself is array
-      if (!address && Array.isArray(r)) address = r[0];
-      // Deep search for D... address
-      if (!address) {
-        for (const k of Object.keys(r)) {
-          if (typeof r[k] === 'string' && r[k].startsWith('D')) {
-            address = r[k]; break;
-          }
+    // Deep recursive search for a Dogecoin address (starts with 'D', 34 chars)
+    function findDogeAddr(obj, depth) {
+      if (depth > 5 || !obj) return null;
+      if (typeof obj === 'string' && obj.startsWith('D') && obj.length >= 26) return obj;
+      if (Array.isArray(obj)) {
+        for (const v of obj) { const r = findDogeAddr(v, depth+1); if (r) return r; }
+      } else if (typeof obj === 'object') {
+        // Check common keys first
+        for (const key of ['address','dogeAddress','account','addr','wallet','accounts','dogeAddr']) {
+          if (obj[key]) { const r = findDogeAddr(obj[key], depth+1); if (r) return r; }
+        }
+        // Fallback: all keys
+        for (const key of Object.keys(obj)) {
+          const r = findDogeAddr(obj[key], depth+1); if (r) return r;
         }
       }
-    } else if (typeof raw === 'string') {
+      return null;
+    }
+
+    // Response format: {status: 'success', response: {address: '...', ...}}
+    if (raw?.status === 'success' && raw?.response) {
+      address = findDogeAddr(raw.response, 0);
+    } else if (typeof raw === 'string' && raw.startsWith('D')) {
       address = raw;
     } else if (Array.isArray(raw)) {
-      address = raw[0];
+      address = findDogeAddr(raw, 0);
     } else if (raw && typeof raw === 'object') {
-      address = raw.address || raw.accounts?.[0] || null;
+      address = findDogeAddr(raw, 0);
     }
+    // Log what we got so it's easier to debug
+    console.log('Ordifind raw response:', JSON.stringify(raw), '→ address:', address);
 
     if (address && typeof address === 'string' && address.startsWith('D')) {
       connectedAddress = address;
@@ -709,8 +719,6 @@ async function connectOrdifind() {
       fetchBalance(address);
       loadFEPEs(address);
     } else {
-      // Log full response for debugging
-      console.log('Ordifind full raw:', JSON.stringify(raw));
       showToast('Could not retrieve Dogecoin address from Ordifind.');
     }
   } catch(e) {
@@ -850,22 +858,37 @@ async function loadFEPEs(address) {
   let allItems = [];
   let success = false;
 
+  function buildFetchUrl(proxy, url) {
+    if (!proxy) return url;
+    if (proxy === 'https://api.allorigins.win/raw?url=' || proxy === 'https://corsproxy.io/?') {
+      return proxy + encodeURIComponent(url);
+    }
+    return proxy + url;
+  }
+
+  function parseItems(data) {
+    if (!data) return null;
+    // Try common response shapes from doggy.market API
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data.nfts)) return data.nfts;
+    if (Array.isArray(data.result)) return data.result;
+    if (data.data && typeof data.data === 'object' && Array.isArray(data.data.list)) return data.data.list;
+    return null;
+  }
+
   for (const proxy of proxies) {
     try {
-      const url = proxy + encodeURIComponent ? (proxy ? proxy + encodeURIComponent(targetUrl) : targetUrl) : targetUrl;
-      // allorigins needs special encoding, others don't
-      const fetchUrl = proxy === 'https://api.allorigins.win/raw?url='
-        ? proxy + encodeURIComponent(targetUrl)
-        : proxy + targetUrl;
-
+      const fetchUrl = buildFetchUrl(proxy, targetUrl);
       const res = await fetch(fetchUrl, {
         headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(8000)
+        signal: AbortSignal.timeout(10000)
       });
-      if (!res.ok) continue;
+      if (!res.ok) { console.log('Proxy failed:', proxy, res.status); continue; }
       const data = await res.json();
-      const items = data?.data || data?.items || data?.nfts || (Array.isArray(data) ? data : []);
-      if (items.length >= 0) {
+      const items = parseItems(data);
+      if (items !== null) {
         allItems = items;
         success = true;
 
@@ -873,27 +896,31 @@ async function loadFEPEs(address) {
         if (items.length === 40) {
           let offset = 40;
           while (true) {
-            const nextUrl = proxy === 'https://api.allorigins.win/raw?url='
-              ? proxy + encodeURIComponent(`https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`)
-              : proxy + `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
-            const r2 = await fetch(nextUrl, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
+            const nextPageUrl = `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
+            const r2 = await fetch(buildFetchUrl(proxy, nextPageUrl), {
+              headers: { 'Accept': 'application/json' },
+              signal: AbortSignal.timeout(10000)
+            });
             if (!r2.ok) break;
             const d2 = await r2.json();
-            const more = d2?.data || d2?.items || d2?.nfts || (Array.isArray(d2) ? d2 : []);
-            if (!more.length) break;
+            const more = parseItems(d2);
+            if (!more || !more.length) break;
             allItems = allItems.concat(more);
             if (more.length < 40) break;
             offset += 40;
           }
         }
+        console.log('loadFEPEs: fetched', allItems.length, 'items via proxy:', proxy || 'direct');
         break;
       }
     } catch(e) {
+      console.log('Proxy error:', proxy, e.message);
       continue;
     }
   }
 
   if (!success) {
+    console.warn('loadFEPEs: all proxies failed or returned unexpected data');
     renderFEPEs([], true, 0);
     return;
   }

@@ -851,93 +851,207 @@ async function loadFEPEs(address) {
   document.getElementById('fepeEmpty').style.display = 'none';
   document.getElementById('otherSection').style.display = 'none';
 
-  const targetUrl = `https://api.doggy.market/wallet/${address}/nfts?offset=0&limit=40`;
-
-  // Try direct first, then CORS proxies
-  const proxies = [
-    '',  // direct
-    'https://corsproxy.io/?',
-    'https://api.allorigins.win/raw?url=',
-    'https://cors-anywhere.herokuapp.com/',
-  ];
-
-  let allItems = [];
-  let success = false;
-
-  function buildFetchUrl(proxy, url) {
-    if (!proxy) return url;
-    if (proxy === 'https://api.allorigins.win/raw?url=' || proxy === 'https://corsproxy.io/?') {
-      return proxy + encodeURIComponent(url);
-    }
-    return proxy + url;
+  // CORS proxy helper
+  function proxied(url) {
+    return [
+      url,
+      'https://corsproxy.io/?' + encodeURIComponent(url),
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    ];
   }
 
-  function parseItems(data) {
-    if (!data) return null;
-    // Try common response shapes from doggy.market API
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.data)) return data.data;
-    if (Array.isArray(data.items)) return data.items;
-    if (Array.isArray(data.nfts)) return data.nfts;
-    if (Array.isArray(data.result)) return data.result;
-    if (data.data && typeof data.data === 'object' && Array.isArray(data.data.list)) return data.data.list;
+  // Fetch with multiple URL attempts, return parsed JSON or null
+  async function tryFetch(urls, label) {
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, {
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(10000)
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        console.log(label, 'response via', url.substring(0,60));
+        return data;
+      } catch(e) {
+        continue;
+      }
+    }
     return null;
   }
 
-  for (const proxy of proxies) {
-    try {
-      const fetchUrl = buildFetchUrl(proxy, targetUrl);
-      const res = await fetch(fetchUrl, {
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(10000)
-      });
-      if (!res.ok) { console.log('Proxy failed:', proxy, res.status); continue; }
-      const data = await res.json();
-      const items = parseItems(data);
-      if (items !== null) {
-        allItems = items;
-        success = true;
+  // Normalise any API response into a flat array of inscription items
+  function parseItems(data) {
+    if (!data) return null;
+    if (Array.isArray(data)) return data.length > 0 ? data : null;
+    if (Array.isArray(data.data) && data.data.length > 0) return data.data;
+    if (Array.isArray(data.items) && data.items.length > 0) return data.items;
+    if (Array.isArray(data.nfts) && data.nfts.length > 0) return data.nfts;
+    if (Array.isArray(data.result) && data.result.length > 0) return data.result;
+    if (Array.isArray(data.inscriptions) && data.inscriptions.length > 0) return data.inscriptions;
+    if (data.data && typeof data.data === 'object' && Array.isArray(data.data.list) && data.data.list.length > 0) return data.data.list;
+    // Return empty array (not null) only if we got a valid but empty response
+    if (Array.isArray(data)) return [];
+    if (data.data !== undefined || data.items !== undefined || data.nfts !== undefined) return [];
+    return null;
+  }
 
-        // Paginate if needed
-        if (items.length === 40) {
-          let offset = 40;
-          while (true) {
-            const nextPageUrl = `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
-            const r2 = await fetch(buildFetchUrl(proxy, nextPageUrl), {
-              headers: { 'Accept': 'application/json' },
-              signal: AbortSignal.timeout(10000)
-            });
-            if (!r2.ok) break;
-            const d2 = await r2.json();
-            const more = parseItems(d2);
-            if (!more || !more.length) break;
-            allItems = allItems.concat(more);
-            if (more.length < 40) break;
-            offset += 40;
-          }
-        }
-        console.log('loadFEPEs: fetched', allItems.length, 'items via proxy:', proxy || 'direct');
+  // Normalise an item from any API into a standard shape: { id, inscriptionId, collectionId, name, number }
+  function normaliseItem(item, source) {
+    if (!item) return null;
+
+    // Doggy Market shape: { inscriptionId, nft: { collectionId, itemName, itemId } }
+    if (source === 'doggy') {
+      const id = item.inscriptionId || item.id || '';
+      return {
+        inscriptionId: id,
+        id,
+        collectionId: item?.nft?.collectionId || item?.collectionId || '',
+        name: item?.nft?.itemName || item?.name || '',
+        number: item?.nft?.itemId || item?.inscriptionNumber || '',
+      };
+    }
+
+    // Wonky-ord / generic ord indexer shape: { id, number, address }
+    if (source === 'ord') {
+      const id = item.id || item.inscriptionId || '';
+      return {
+        inscriptionId: id,
+        id,
+        collectionId: item?.collection?.symbol || item?.collectionId || '',
+        name: item?.meta?.name || item?.name || '',
+        number: item?.number || item?.num || '',
+      };
+    }
+
+    // Fallback: try to extract anything useful
+    const id = item.inscriptionId || item.id || item.inscription_id || '';
+    return {
+      inscriptionId: id,
+      id,
+      collectionId: item?.nft?.collectionId || item?.collectionId || item?.collection || '',
+      name: item?.nft?.itemName || item?.name || item?.meta?.name || '',
+      number: item?.nft?.itemId || item?.inscriptionNumber || item?.number || '',
+    };
+  }
+
+  let allItems = [];
+  let apiUsed = '';
+
+  // ── SOURCE 1: Doggy Market /wallet/{addr}/nfts ──────────────────────────
+  // Returns listed + held NFTs indexed by Doggy Market
+  async function fetchDoggyMarket() {
+    let items = [];
+    let offset = 0;
+    while (true) {
+      const url = `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
+      const data = await tryFetch(proxied(url), 'DoggyMarket');
+      const batch = parseItems(data);
+      if (batch === null) return null; // API unreachable
+      if (batch.length === 0) break;
+      items = items.concat(batch.map(i => normaliseItem(i, 'doggy')));
+      if (batch.length < 40) break;
+      offset += 40;
+    }
+    return items;
+  }
+
+  // ── SOURCE 2: Doggy Market /wallet/{addr}/inscriptions ───────────────────
+  // Some versions of the API expose a separate "all inscriptions" endpoint
+  async function fetchDoggyInscriptions() {
+    let items = [];
+    let offset = 0;
+    while (true) {
+      const url = `https://api.doggy.market/wallet/${address}/inscriptions?offset=${offset}&limit=40`;
+      const data = await tryFetch(proxied(url), 'DoggyInscriptions');
+      const batch = parseItems(data);
+      if (batch === null) return null;
+      if (batch.length === 0) break;
+      items = items.concat(batch.map(i => normaliseItem(i, 'doggy')));
+      if (batch.length < 40) break;
+      offset += 40;
+    }
+    return items;
+  }
+
+  // ── SOURCE 3: Wonky-ord Doginals indexer ────────────────────────────────
+  // Indexes ALL inscriptions on Dogecoin, not just marketplace-listed ones
+  async function fetchWonkyOrd() {
+    let items = [];
+    let page = 0;
+    while (true) {
+      const url = `https://wonky-ord.dogeord.io/api/v1/inscriptions/address/${address}?page=${page}&limit=40`;
+      const data = await tryFetch(proxied(url), 'WonkyOrd');
+      const batch = parseItems(data);
+      if (batch === null) return null;
+      if (batch.length === 0) break;
+      items = items.concat(batch.map(i => normaliseItem(i, 'ord')));
+      if (batch.length < 40) break;
+      page++;
+    }
+    return items;
+  }
+
+  // ── SOURCE 4: dogeord.io alternative indexer ────────────────────────────
+  async function fetchDogeOrd() {
+    let items = [];
+    let page = 0;
+    while (true) {
+      const url = `https://dogeord.io/api/v1/inscriptions/address/${address}?page=${page}&limit=40`;
+      const data = await tryFetch(proxied(url), 'DogeOrd');
+      const batch = parseItems(data);
+      if (batch === null) return null;
+      if (batch.length === 0) break;
+      items = items.concat(batch.map(i => normaliseItem(i, 'ord')));
+      if (batch.length < 40) break;
+      page++;
+    }
+    return items;
+  }
+
+  // Try each source in order, use the first that returns data
+  const sources = [
+    { fn: fetchDoggyMarket,       name: 'Doggy Market /nfts' },
+    { fn: fetchDoggyInscriptions, name: 'Doggy Market /inscriptions' },
+    { fn: fetchWonkyOrd,          name: 'Wonky-Ord indexer' },
+    { fn: fetchDogeOrd,           name: 'DogeOrd indexer' },
+  ];
+
+  for (const source of sources) {
+    try {
+      const result = await source.fn();
+      if (result !== null) {          // null = API unreachable
+        allItems = result;
+        apiUsed = source.name;
+        console.log(`loadFEPEs: ${result.length} items from "${source.name}"`);
         break;
       }
     } catch(e) {
-      console.log('Proxy error:', proxy, e.message);
-      continue;
+      console.log(`loadFEPEs: ${source.name} error:`, e.message);
     }
   }
 
-  if (!success) {
-    console.warn('loadFEPEs: all proxies failed or returned unexpected data');
+  if (!apiUsed) {
+    console.warn('loadFEPEs: all sources failed');
     renderFEPEs([], true, 0);
     return;
   }
+
+  // Deduplicate by inscription ID
+  const seen = new Set();
+  const deduped = allItems.filter(item => {
+    const id = item.inscriptionId || item.id;
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 
   // Split into FEPEs and Other Doginals
   const fepeItems = [];
   const otherItems = [];
 
-  for (const item of allItems) {
+  for (const item of deduped) {
     const id = item.inscriptionId || item.id;
-    const collectionId = item?.nft?.collectionId || item?.collectionId || '';
+    const collectionId = item.collectionId || '';
     if (collectionId === 'doginalsfepe' || (id && FEPE_LOOKUP[id] !== undefined)) {
       fepeItems.push(item);
     } else {
@@ -946,7 +1060,7 @@ async function loadFEPEs(address) {
   }
 
   const fepes = extractFEPEs(fepeItems);
-  renderFEPEs(fepes, false, allItems.length);
+  renderFEPEs(fepes, false, deduped.length);
   renderOtherDoginals(otherItems);
 }
 
@@ -963,9 +1077,9 @@ function renderOtherDoginals(items) {
   const grid = document.getElementById('otherGrid');
   grid.innerHTML = items.map(item => {
     const id = item.inscriptionId || item.id || '';
-    const name = item?.nft?.itemName || item?.name || 'Doginal';
-    const itemId = item?.nft?.itemId || item?.inscriptionNumber || '';
-    const collection = item?.nft?.collectionId || item?.collectionId || '';
+    const name = item.name || item?.nft?.itemName || 'Doginal';
+    const itemNum = item.number || item?.nft?.itemId || item?.inscriptionNumber || '';
+    const collection = item.collectionId || item?.nft?.collectionId || '';
     const imgUrl = `https://cdn.doggy.market/content/${id}`;
     const marketUrl = `https://doggy.market/inscription/${id}`;
 
@@ -980,11 +1094,11 @@ function renderOtherDoginals(items) {
           />
           <div class="ph" style="display:none;">
             <div class="e">🎨</div>
-            <div class="n">#${itemId}</div>
+            <div class="n">#${itemNum}</div>
           </div>
         </div>
         <div class="fepe-info">
-          <span class="fepe-num">${name} ${itemId ? '#' + itemId : ''}</span>
+          <span class="fepe-num">${name} ${itemNum ? '#' + itemNum : ''}</span>
           <span class="fepe-id" style="color:var(--cyan);opacity:.7;">${collection || id.substring(0,16) + '...'}</span>
           <div class="fepe-view" style="border-color:rgba(0,212,255,.25);color:var(--cyan);">View on Doggy Market →</div>
         </div>

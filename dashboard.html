@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<link rel="icon" type="image/png" href="favicon.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>DoginalsFepe — My Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
@@ -342,16 +341,6 @@ nav{
 .mbtn-outline:hover{border-color:var(--white);}
 
 /* RESPONSIVE */
-/* HAMBURGER */
-.nav-right{display:flex;align-items:center;gap:12px;}
-.hamburger{display:none;flex-direction:column;justify-content:space-between;width:28px;height:20px;background:none;border:none;cursor:pointer;padding:0;z-index:600;}
-.hamburger span{display:block;width:100%;height:2px;background:var(--white);border-radius:2px;transition:all .3s ease;}
-.hamburger.open span:nth-child(1){transform:translateY(9px) rotate(45deg);}
-.hamburger.open span:nth-child(2){opacity:0;}
-.hamburger.open span:nth-child(3){transform:translateY(-9px) rotate(-45deg);}
-.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;}
-.mobile-overlay.show{display:block;}
-
 @media(max-width:900px){
   .wallet-card{grid-template-columns:1fr 1fr;}
   .wstat{border-right:none;border-bottom:1px solid var(--border);padding-bottom:16px;}
@@ -361,20 +350,7 @@ nav{
 @media(max-width:600px){
   .wallet-card{grid-template-columns:1fr;}
   .fepe-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
-  .hamburger{display:flex;}
-  .nav-links{
-    display:flex!important;flex-direction:column;
-    position:fixed;top:0;right:-100%;width:75%;max-width:280px;height:100vh;
-    background:rgba(12,14,18,0.98);border-left:1px solid rgba(245,197,24,0.2);
-    padding:80px 24px 40px;gap:0;z-index:500;transition:right .3s ease;
-  }
-  .nav-links.open{right:0;}
-  .nav-links a{display:block;padding:16px 0;color:var(--white)!important;font-size:1rem;font-weight:700;border-bottom:1px solid var(--border);}
-  .main{padding:80px 4% 40px;}
-  .connect-box{padding:32px 20px;}
-  .dashboard-inner{padding:80px 4% 40px;}
-  .address-wrap{flex-wrap:wrap;gap:6px;}
-  .address-val{font-size:.65rem;}
+  nav .nav-links{display:none;}
 }
 </style>
 </head>
@@ -386,14 +362,12 @@ nav{
     <div class="nav-coin">Ð</div>
     <span class="l1">DOGINALS</span><span class="l2">FEPE</span>
   </a>
-  <div class="nav-links" id="navLinks">
-    <a href="index.html" onclick="closeMenu()">← Home</a>
-    <a href="collection.html" onclick="closeMenu()">Full Collection</a>
-    <a href="https://doggy.market/nfts/doginalsfepe" target="_blank" onclick="closeMenu()">Doggy Market</a>
+  <div class="nav-links">
+    <a href="index.html">← Home</a>
+    <a href="collection.html">Full Collection</a>
+    <a href="https://doggy.market/nfts/doginalsfepe" target="_blank">Doggy Market</a>
   </div>
-  <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
 </nav>
-<div class="mobile-overlay" id="mobileOverlay" onclick="closeMenu()"></div>
 
 <!-- MAIN -->
 <div class="main">
@@ -426,7 +400,6 @@ nav{
       <p>Connect your Dogecoin wallet to view your DoginalsFepe collection, check your DOGE balance, and manage your FEPEs.</p>
 
       <div class="wallet-options">
-        <!-- 1. MyDoge -->
         <button class="wallet-opt" onclick="connectMyDoge()">
           <div class="wallet-opt-icon">🐕</div>
           <div class="wallet-opt-info">
@@ -435,32 +408,6 @@ nav{
           </div>
           <span class="wallet-opt-badge">Recommended</span>
         </button>
-        <!-- 2. Nintondo -->
-        <button class="wallet-opt" onclick="connectNintondo()" style="opacity:.6;">
-          <div class="wallet-opt-icon">🔔</div>
-          <div class="wallet-opt-info">
-            <div class="wallet-opt-name">Nintondo Wallet</div>
-            <div class="wallet-opt-desc">dApp connection not yet supported</div>
-          </div>
-          <span class="wallet-opt-badge" style="background:rgba(255,100,0,.15);border-color:orange;color:orange;">Soon</span>
-        </button>
-        <!-- 3. Ordifind -->
-        <button class="wallet-opt" onclick="connectOrdifind()">
-          <div class="wallet-opt-icon">🔍</div>
-          <div class="wallet-opt-info">
-            <div class="wallet-opt-name">Ordifind Wallet</div>
-            <div class="wallet-opt-desc">Connect with Ordifind browser extension</div>
-          </div>
-        </button>
-        <!-- 4. DogeLabs -->
-        <button class="wallet-opt" onclick="connectDogeLabs()">
-          <div class="wallet-opt-icon">🧪</div>
-          <div class="wallet-opt-info">
-            <div class="wallet-opt-name">Doge Labs Wallet</div>
-            <div class="wallet-opt-desc">Connect with Doge Labs browser extension</div>
-          </div>
-        </button>
-        <!-- 5. Manual -->
         <button class="wallet-opt" onclick="connectManual()">
           <div class="wallet-opt-icon">🔑</div>
           <div class="wallet-opt-info">
@@ -480,7 +427,11 @@ nav{
         </button>
       </div>
 
-      <div class="no-wallet-msg" id="noWalletMsg"></div>
+      <div class="no-wallet-msg" id="noWalletMsg">
+        MyDoge wallet not detected. Please install the
+        <a href="https://chrome.google.com/webstore/detail/mydoge-dogecoin-wallet/mljponncmhdlacmjbophphkbgcgjdnff" target="_blank">MyDoge Chrome Extension</a>
+        first, then refresh this page.
+      </div>
     </div>
   </div>
 
@@ -498,7 +449,6 @@ nav{
     <!-- Address -->
     <div class="address-wrap">
       <span class="address-label">Wallet:</span>
-      <span id="connectedWalletName" style="color:var(--gold);font-size:.75rem;font-weight:700;flex-shrink:0;background:rgba(245,197,24,.1);padding:2px 8px;border-radius:6px;"></span>
       <span class="address-val" id="addressDisplay">—</span>
       <button class="copy-btn" onclick="copyAddress()">Copy</button>
     </div>
@@ -603,7 +553,6 @@ const FEPE_LOOKUP={"74195b6b98f1b5802c9268ffc12c85877befce9f05a254dcbaee6ca6b937
 })();
 let connectedAddress = null;
 let isMyDogeConnected = false;
-let myDogeMask = null;
 
 // Listen for MyDoge wallet
 window.addEventListener('doge#initialized', () => {
@@ -624,18 +573,10 @@ function showToast(msg, duration=3000) {
   setTimeout(() => t.classList.remove('show'), duration);
 }
 
-// ─── WALLET CONNECTION FUNCTIONS ───────────────────────────────
-
-function showNoWallet(name, installUrl) {
-  const el = document.getElementById('noWalletMsg');
-  el.style.display = 'block';
-  el.innerHTML = `${name} not detected. <a href="${installUrl}" target="_blank">Install ${name}</a> then refresh this page.`;
-}
-
-// 1. MyDoge
+// Connect MyDoge
 async function connectMyDoge() {
   if (!myDogeMask?.isMyDoge) {
-    showNoWallet('MyDoge Wallet', 'https://chrome.google.com/webstore/detail/mydoge-dogecoin-wallet/mljponncmhdlacmjbophphkbgcgjdnff');
+    document.getElementById('noWalletMsg').style.display = 'block';
     return;
   }
   try {
@@ -645,111 +586,11 @@ async function connectMyDoge() {
       isMyDogeConnected = true;
       connectedAddress = res.address;
       const balanceInDoge = (parseInt(res.balance) / 100000000).toFixed(2);
-      showDashboard(res.address, balanceInDoge, 'MyDoge');
+      showDashboard(res.address, balanceInDoge);
       loadFEPEs(res.address);
     }
   } catch(e) {
     showToast('Connection cancelled or failed.');
-  }
-}
-
-// 2. Nintondo
-// 2. Nintondo - dApp API not yet supported on external sites
-async function connectNintondo() {
-  const el = document.getElementById('noWalletMsg');
-  el.style.display = 'block';
-  el.innerHTML = `⚠️ Nintondo Wallet dApp connection is not yet supported on external websites.<br><br>
-    To view your FEPEs, please use one of these options:<br>
-    • Use <strong>MyDoge</strong>, <strong>Ordifind</strong> or <strong>Doge Labs</strong> wallet instead<br>
-    • Or use <strong>Enter Address Manually</strong> with your Dogecoin address`;
-}
-
-// 3. Ordifind
-async function connectOrdifind() {
-  await new Promise(r => setTimeout(r, 300));
-  const ordifind = window.ordifind || window.oifi || window.OIFI;
-  if (!ordifind) {
-    showNoWallet('Ordifind Wallet', 'https://chromewebstore.google.com/detail/ordifind-wallet/dpcklmdombjcplafheapiblogdlgjjlb');
-    return;
-  }
-  try {
-    showToast('Connecting to Ordifind...');
-    let address = null;
-    let raw = null;
-
-    if (ordifind.connect) raw = await ordifind.connect();
-    else if (ordifind.requestAccounts) raw = await ordifind.requestAccounts();
-    else if (ordifind.getAccounts) raw = await ordifind.getAccounts();
-
-    // Response format: {status: 'success', response: {address: '...', ...}}
-    if (raw?.status === 'success' && raw?.response) {
-      const r = raw.response;
-      address = r.address || r.accounts?.[0] || r[0] || null;
-      // If response itself is array
-      if (!address && Array.isArray(r)) address = r[0];
-      // Deep search for D... address
-      if (!address) {
-        for (const k of Object.keys(r)) {
-          if (typeof r[k] === 'string' && r[k].startsWith('D')) {
-            address = r[k]; break;
-          }
-        }
-      }
-    } else if (typeof raw === 'string') {
-      address = raw;
-    } else if (Array.isArray(raw)) {
-      address = raw[0];
-    } else if (raw && typeof raw === 'object') {
-      address = raw.address || raw.accounts?.[0] || null;
-    }
-
-    if (address && typeof address === 'string' && address.startsWith('D')) {
-      connectedAddress = address;
-      showDashboard(address, '—', 'Ordifind');
-      fetchBalance(address);
-      loadFEPEs(address);
-    } else {
-      // Log full response for debugging
-      console.log('Ordifind full raw:', JSON.stringify(raw));
-      showToast('Could not retrieve Dogecoin address from Ordifind.');
-    }
-  } catch(e) {
-    showToast('Ordifind connection cancelled or failed.');
-    console.error('Ordifind error:', e);
-  }
-}
-
-// 4. Doge Labs
-async function connectDogeLabs() {
-  // Doge Labs injects window.dogeLabs or window.dogelabs
-  const dogeLabs = window.dogeLabs || window.dogelabs || window.doge_labs;
-  if (!dogeLabs) {
-    showNoWallet('Doge Labs Wallet', 'https://chromewebstore.google.com/detail/doge-labs-wallet/jiepnaheligkibgcjgjepjfppgbcghmp');
-    return;
-  }
-  try {
-    showToast('Connecting to Doge Labs...');
-    let address = null;
-    if (dogeLabs.connect) {
-      const res = await dogeLabs.connect();
-      address = res?.address || res;
-    } else if (dogeLabs.requestAccounts) {
-      const accounts = await dogeLabs.requestAccounts();
-      address = accounts?.[0];
-    } else if (dogeLabs.getAccounts) {
-      const accounts = await dogeLabs.getAccounts();
-      address = accounts?.[0];
-    }
-    if (address) {
-      connectedAddress = address;
-      showDashboard(address, '—', 'Doge Labs');
-      fetchBalance(address);
-      loadFEPEs(address);
-    } else {
-      showToast('Could not retrieve address from Doge Labs.');
-    }
-  } catch(e) {
-    showToast('Doge Labs connection cancelled or failed.');
   }
 }
 
@@ -766,47 +607,32 @@ async function loadManualAddress() {
     return;
   }
   connectedAddress = addr;
-  showDashboard(addr, '—', 'Manual');
+  showDashboard(addr, '—');
   loadFEPEs(addr);
+  // Try to get balance from public API
   fetchBalance(addr);
 }
 
-// Fetch balance from public Dogecoin APIs with fallbacks
+// Fetch balance from public Dogecoin API
 async function fetchBalance(address) {
-  const apis = [
-    {
-      url: `https://api.blockcypher.com/v1/doge/main/addrs/${address}/balance`,
-      parse: d => (d.balance / 100000000).toLocaleString(undefined, {maximumFractionDigits:2})
-    },
-    {
-      url: `https://dogechain.info/api/v1/address/balance/${address}`,
-      parse: d => d.success ? parseFloat(d.balance).toLocaleString(undefined, {maximumFractionDigits:2}) : null
-    },
-  ];
-  for (const api of apis) {
-    try {
-      const res = await fetch(api.url);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const bal = api.parse(data);
-      if (bal !== null && bal !== undefined) {
-        document.getElementById('dogeBalance').textContent = bal + ' Ð';
-        document.getElementById('dogeBalanceSub').textContent = 'Dogecoin';
-        return;
-      }
-    } catch(e) { continue; }
+  try {
+    const res = await fetch(`https://dogechain.info/api/v1/address/balance/${address}`);
+    const data = await res.json();
+    if (data.success) {
+      const bal = parseFloat(data.balance).toLocaleString(undefined, {maximumFractionDigits:2});
+      document.getElementById('dogeBalance').textContent = bal + ' Ð';
+      document.getElementById('dogeBalanceSub').textContent = 'Dogecoin';
+    }
+  } catch(e) {
+    document.getElementById('dogeBalance').textContent = 'N/A';
+    document.getElementById('dogeBalanceSub').textContent = 'Could not fetch';
   }
-  document.getElementById('dogeBalance').textContent = 'N/A';
-  document.getElementById('dogeBalanceSub').textContent = 'Could not fetch';
 }
 
-function showDashboard(address, balance, walletName) {
+function showDashboard(address, balance) {
   document.getElementById('connectScreen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('addressDisplay').textContent = address;
-  // Show wallet name in subtitle if element exists
-  const walletNameEl = document.getElementById('connectedWalletName');
-  if (walletNameEl) walletNameEl.textContent = walletName || '';
 
   if (balance !== '—') {
     const bal = parseFloat(balance).toLocaleString(undefined, {maximumFractionDigits:2});
@@ -831,82 +657,87 @@ function extractFEPEs(items) {
   return found.sort((a,b) => a.num - b.num);
 }
 
-// Image URL helper - use corsproxy for canvas, direct for img tags
-function cdnUrl(id) {
-  return `https://cdn.doggy.market/content/${id}`;
-}
-function cdnUrlProxy(id) {
-  return `https://corsproxy.io/?${encodeURIComponent('https://cdn.doggy.market/content/' + id)}`;
-}
-// For img tags, try direct first then proxy on error
-function imgWithFallback(id, alt, phEmoji, phNum) {
-  return `<img
-    src="${cdnUrl(id)}"
-    alt="${alt}"
-    loading="lazy"
-    onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='${cdnUrlProxy(id)}';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}"
-  />`;
-}
-
 async function loadFEPEs(address) {
   document.getElementById('fepeLoading').style.display = 'block';
   document.getElementById('fepeGrid').style.display = 'none';
   document.getElementById('fepeEmpty').style.display = 'none';
   document.getElementById('otherSection').style.display = 'none';
 
-  // Multiple API endpoints to try
-  const apiEndpoints = [
-    `https://api.doggy.market/wallet/${address}/nfts?offset=0&limit=40`,
-    `https://doggy.market/api/address/inscriptions?address=${address}&offset=0&limit=40`,
+  const targetUrl = `https://api.doggy.market/wallet/${address}/nfts?offset=0&limit=40`;
+
+  // Try direct first, then CORS proxies
+  const proxies = [
+    '',  // direct
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+    'https://cors-anywhere.herokuapp.com/',
   ];
-  const proxies = ['', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
 
-  let allItems = [], success = false;
+  let allItems = [];
+  let success = false;
 
-  outer:
-  for (const endpoint of apiEndpoints) {
-    for (const proxy of proxies) {
-      try {
-        const fetchUrl = proxy ? proxy + encodeURIComponent(endpoint) : endpoint;
-        const res = await fetch(fetchUrl, { headers:{'Accept':'application/json'}, signal:AbortSignal.timeout(8000) });
-        if (!res.ok) continue;
-        const data = await res.json();
-        const items = data?.data || data?.items || data?.nfts || data?.result || data?.inscriptions || (Array.isArray(data) ? data : []);
-        if (items.length >= 0) {
-          allItems = items; success = true;
-          // Paginate
-          if (items.length === 40) {
-            let offset = 40;
-            while(true) {
-              const nextUrl = proxy ? proxy + encodeURIComponent(endpoint.replace('offset=0', `offset=${offset}`)) : endpoint.replace('offset=0', `offset=${offset}`);
-              const r2 = await fetch(nextUrl, { headers:{'Accept':'application/json'}, signal:AbortSignal.timeout(8000) });
-              if (!r2.ok) break;
-              const d2 = await r2.json();
-              const more = d2?.data || d2?.items || d2?.nfts || d2?.result || (Array.isArray(d2) ? d2 : []);
-              if (!more.length) break;
-              allItems = allItems.concat(more);
-              if (more.length < 40) break;
-              offset += 40;
-            }
+  for (const proxy of proxies) {
+    try {
+      const url = proxy + encodeURIComponent ? (proxy ? proxy + encodeURIComponent(targetUrl) : targetUrl) : targetUrl;
+      // allorigins needs special encoding, others don't
+      const fetchUrl = proxy === 'https://api.allorigins.win/raw?url='
+        ? proxy + encodeURIComponent(targetUrl)
+        : proxy + targetUrl;
+
+      const res = await fetch(fetchUrl, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const items = data?.data || data?.items || data?.nfts || (Array.isArray(data) ? data : []);
+      if (items.length >= 0) {
+        allItems = items;
+        success = true;
+
+        // Paginate if needed
+        if (items.length === 40) {
+          let offset = 40;
+          while (true) {
+            const nextUrl = proxy === 'https://api.allorigins.win/raw?url='
+              ? proxy + encodeURIComponent(`https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`)
+              : proxy + `https://api.doggy.market/wallet/${address}/nfts?offset=${offset}&limit=40`;
+            const r2 = await fetch(nextUrl, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
+            if (!r2.ok) break;
+            const d2 = await r2.json();
+            const more = d2?.data || d2?.items || d2?.nfts || (Array.isArray(d2) ? d2 : []);
+            if (!more.length) break;
+            allItems = allItems.concat(more);
+            if (more.length < 40) break;
+            offset += 40;
           }
-          break outer;
         }
-      } catch(e) { continue; }
+        break;
+      }
+    } catch(e) {
+      continue;
     }
   }
 
-  if (!success) { renderFEPEs([], true, 0); return; }
+  if (!success) {
+    renderFEPEs([], true, 0);
+    return;
+  }
 
-  const fepeItems = [], otherItems = [];
+  // Split into FEPEs and Other Doginals
+  const fepeItems = [];
+  const otherItems = [];
+
   for (const item of allItems) {
-    const id = item.inscriptionId || item.id || item.inscription_id;
-    const collectionId = item?.nft?.collectionId || item?.collectionId || item?.collection || item?.collection_symbol || '';
+    const id = item.inscriptionId || item.id;
+    const collectionId = item?.nft?.collectionId || item?.collectionId || '';
     if (collectionId === 'doginalsfepe' || (id && FEPE_LOOKUP[id] !== undefined)) {
       fepeItems.push(item);
     } else {
       otherItems.push(item);
     }
   }
+
   const fepes = extractFEPEs(fepeItems);
   renderFEPEs(fepes, false, allItems.length);
   renderOtherDoginals(otherItems);
@@ -934,7 +765,12 @@ function renderOtherDoginals(items) {
     return `
       <a class="fepe-card" href="${marketUrl}" target="_blank">
         <div class="fepe-img">
-          ${imgWithFallback(id, name, '🎨', itemId)}
+          <img
+            src="${imgUrl}"
+            alt="${name}"
+            loading="lazy"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+          />
           <div class="ph" style="display:none;">
             <div class="e">🎨</div>
             <div class="n">#${itemId}</div>
@@ -975,7 +811,12 @@ function renderFEPEs(fepes, apiFailed = false, totalDoginals = 0) {
   grid.innerHTML = fepes.map(f => `
     <a class="fepe-card" href="https://doggy.market/inscription/${f.id}" target="_blank">
       <div class="fepe-img">
-        ${imgWithFallback(f.id, 'FEPE #'+f.num, '🐸', f.num)}
+        <img
+          src="https://cdn.doggy.market/content/${f.id}"
+          alt="FEPE #${f.num}"
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        />
         <div class="ph" style="display:none;">
           <div class="e">🐸</div>
           <div class="n">#${f.num}</div>
@@ -998,36 +839,16 @@ function copyAddress() {
 }
 
 async function disconnect() {
-  // Try disconnecting each wallet gracefully
   if (isMyDogeConnected && myDogeMask) {
     try { await myDogeMask.disconnect(); } catch(e) {}
-  }
-  if (window.nintondo?.provider?.disconnect) {
-    try { await window.nintondo.provider.disconnect(); } catch(e) {}
   }
   connectedAddress = null;
   isMyDogeConnected = false;
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('connectScreen').style.display = 'flex';
   document.getElementById('fepeGrid').innerHTML = '';
-  document.getElementById('noWalletMsg').style.display = 'none';
-  document.getElementById('noWalletMsg').innerHTML = '';
   showToast('Wallet disconnected.');
 }
-
-// ─── HAMBURGER MENU ───
-function toggleMenu(){
-  document.getElementById('navLinks').classList.toggle('open');
-  document.getElementById('hamburger').classList.toggle('open');
-  document.getElementById('mobileOverlay').classList.toggle('show');
-}
-function closeMenu(){
-  document.getElementById('navLinks').classList.remove('open');
-  document.getElementById('hamburger').classList.remove('open');
-  document.getElementById('mobileOverlay').classList.remove('show');
-}
-window.addEventListener('resize',()=>{if(window.innerWidth>600)closeMenu();});
 </script>
-<script data-goatcounter="https://doginalsfepe.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

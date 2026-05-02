@@ -865,12 +865,15 @@ async function loadFEPEs(address) {
     for (const url of urls) {
       try {
         const res = await fetch(url, {
-          headers: { 'Accept': 'application/json' },
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
           signal: AbortSignal.timeout(10000)
         });
         if (!res.ok) continue;
         const data = await res.json();
-        console.log(label, 'response via', url.substring(0,60));
+        console.log(label, 'OK via', url.substring(0,70));
         return data;
       } catch(e) {
         continue;
@@ -973,31 +976,65 @@ async function loadFEPEs(address) {
     return items;
   }
 
-  // ── SOURCE 3: Wonky-ord Doginals indexer ────────────────────────────────
-  // Indexes ALL inscriptions on Dogecoin, not just marketplace-listed ones
-  async function fetchWonkyOrd() {
+  // ── SOURCE 3: Ordifind ord indexer ──────────────────────────────────────
+  // Ordifind runs their own Dogecoin ord indexer with a public API
+  async function fetchOrdifind() {
     let items = [];
-    let page = 0;
+    let offset = 0;
     while (true) {
-      const url = `https://wonky-ord.dogeord.io/api/v1/inscriptions/address/${address}?page=${page}&limit=40`;
-      const data = await tryFetch(proxied(url), 'WonkyOrd');
+      const url = `https://api.ordifind.com/doge/v1/address/${address}/inscriptions?offset=${offset}&limit=40`;
+      const data = await tryFetch(proxied(url), 'Ordifind');
       const batch = parseItems(data);
       if (batch === null) return null;
       if (batch.length === 0) break;
       items = items.concat(batch.map(i => normaliseItem(i, 'ord')));
       if (batch.length < 40) break;
+      offset += 40;
+    }
+    return items;
+  }
+
+  // ── SOURCE 4: Doge Labs ord server ──────────────────────────────────────
+  // Doge Labs built and operate the primary Dogecoin ord indexer
+  // Supports standard ord JSON API with Accept: application/json header
+  async function fetchDogeLabsOrd() {
+    let items = [];
+    let page = 0;
+    while (true) {
+      // Standard ord server address endpoint - returns inscription IDs held by address
+      const url = `https://ord.dogelabs.io/address/${address}?page=${page}`;
+      const data = await tryFetch(
+        proxied(url).map(u => u), // pass through proxied URLs
+        'DogeLabsOrd'
+      );
+      if (!data) return null;
+
+      // Ord server /address endpoint returns { inscriptions: [...ids], more: bool }
+      let ids = [];
+      if (Array.isArray(data.inscriptions)) ids = data.inscriptions;
+      else if (Array.isArray(data.ids)) ids = data.ids;
+      else if (Array.isArray(data)) ids = data;
+
+      if (ids.length === 0) break;
+
+      // Convert IDs to normalised items (image served from doggy CDN)
+      const batch = ids.map(id => normaliseItem({ id, inscriptionId: id }, 'ord'));
+      items = items.concat(batch);
+
+      if (!data.more && !data.hasMore) break;
       page++;
     }
     return items;
   }
 
-  // ── SOURCE 4: dogeord.io alternative indexer ────────────────────────────
-  async function fetchDogeOrd() {
+  // ── SOURCE 5: drc-20.org indexer ────────────────────────────────────────
+  // drc-20.org runs an independent Dogecoin inscription indexer
+  async function fetchDrc20Org() {
     let items = [];
     let page = 0;
     while (true) {
-      const url = `https://dogeord.io/api/v1/inscriptions/address/${address}?page=${page}&limit=40`;
-      const data = await tryFetch(proxied(url), 'DogeOrd');
+      const url = `https://api.drc-20.org/inscriptions/address/${address}?page=${page}&limit=40`;
+      const data = await tryFetch(proxied(url), 'Drc20Org');
       const batch = parseItems(data);
       if (batch === null) return null;
       if (batch.length === 0) break;
@@ -1012,8 +1049,9 @@ async function loadFEPEs(address) {
   const sources = [
     { fn: fetchDoggyMarket,       name: 'Doggy Market /nfts' },
     { fn: fetchDoggyInscriptions, name: 'Doggy Market /inscriptions' },
-    { fn: fetchWonkyOrd,          name: 'Wonky-Ord indexer' },
-    { fn: fetchDogeOrd,           name: 'DogeOrd indexer' },
+    { fn: fetchOrdifind,          name: 'Ordifind indexer' },
+    { fn: fetchDogeLabsOrd,       name: 'Doge Labs ord server' },
+    { fn: fetchDrc20Org,          name: 'drc-20.org indexer' },
   ];
 
   for (const source of sources) {

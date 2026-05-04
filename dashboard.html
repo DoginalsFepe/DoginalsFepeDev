@@ -400,6 +400,7 @@ nav{
       <p>Connect your Dogecoin wallet to view your DoginalsFepe collection, check your DOGE balance, and manage your FEPEs.</p>
 
       <div class="wallet-options">
+        <!-- 1. MyDoge -->
         <button class="wallet-opt" onclick="connectMyDoge()">
           <div class="wallet-opt-icon">🐕</div>
           <div class="wallet-opt-info">
@@ -408,6 +409,31 @@ nav{
           </div>
           <span class="wallet-opt-badge">Recommended</span>
         </button>
+        <!-- 2. Nintondo -->
+        <button class="wallet-opt" onclick="connectNintondo()">
+          <div class="wallet-opt-icon">🔔</div>
+          <div class="wallet-opt-info">
+            <div class="wallet-opt-name">Nintondo Wallet</div>
+            <div class="wallet-opt-desc">Connect with Nintondo browser extension</div>
+          </div>
+        </button>
+        <!-- 3. Ordifind -->
+        <button class="wallet-opt" onclick="connectOrdifind()">
+          <div class="wallet-opt-icon">🔍</div>
+          <div class="wallet-opt-info">
+            <div class="wallet-opt-name">Ordifind Wallet</div>
+            <div class="wallet-opt-desc">Connect with Ordifind browser extension</div>
+          </div>
+        </button>
+        <!-- 4. DogeLabs -->
+        <button class="wallet-opt" onclick="connectDogeLabs()">
+          <div class="wallet-opt-icon">🧪</div>
+          <div class="wallet-opt-info">
+            <div class="wallet-opt-name">Doge Labs Wallet</div>
+            <div class="wallet-opt-desc">Connect with Doge Labs browser extension</div>
+          </div>
+        </button>
+        <!-- 5. Manual -->
         <button class="wallet-opt" onclick="connectManual()">
           <div class="wallet-opt-icon">🔑</div>
           <div class="wallet-opt-info">
@@ -427,11 +453,7 @@ nav{
         </button>
       </div>
 
-      <div class="no-wallet-msg" id="noWalletMsg">
-        MyDoge wallet not detected. Please install the
-        <a href="https://chrome.google.com/webstore/detail/mydoge-dogecoin-wallet/mljponncmhdlacmjbophphkbgcgjdnff" target="_blank">MyDoge Chrome Extension</a>
-        first, then refresh this page.
-      </div>
+      <div class="no-wallet-msg" id="noWalletMsg"></div>
     </div>
   </div>
 
@@ -449,6 +471,7 @@ nav{
     <!-- Address -->
     <div class="address-wrap">
       <span class="address-label">Wallet:</span>
+      <span id="connectedWalletName" style="color:var(--gold);font-size:.75rem;font-weight:700;flex-shrink:0;background:rgba(245,197,24,.1);padding:2px 8px;border-radius:6px;"></span>
       <span class="address-val" id="addressDisplay">—</span>
       <button class="copy-btn" onclick="copyAddress()">Copy</button>
     </div>
@@ -573,10 +596,18 @@ function showToast(msg, duration=3000) {
   setTimeout(() => t.classList.remove('show'), duration);
 }
 
-// Connect MyDoge
+// ─── WALLET CONNECTION FUNCTIONS ───────────────────────────────
+
+function showNoWallet(name, installUrl) {
+  const el = document.getElementById('noWalletMsg');
+  el.style.display = 'block';
+  el.innerHTML = `${name} not detected. <a href="${installUrl}" target="_blank">Install ${name}</a> then refresh this page.`;
+}
+
+// 1. MyDoge
 async function connectMyDoge() {
   if (!myDogeMask?.isMyDoge) {
-    document.getElementById('noWalletMsg').style.display = 'block';
+    showNoWallet('MyDoge Wallet', 'https://chrome.google.com/webstore/detail/mydoge-dogecoin-wallet/mljponncmhdlacmjbophphkbgcgjdnff');
     return;
   }
   try {
@@ -586,11 +617,141 @@ async function connectMyDoge() {
       isMyDogeConnected = true;
       connectedAddress = res.address;
       const balanceInDoge = (parseInt(res.balance) / 100000000).toFixed(2);
-      showDashboard(res.address, balanceInDoge);
+      showDashboard(res.address, balanceInDoge, 'MyDoge');
       loadFEPEs(res.address);
     }
   } catch(e) {
     showToast('Connection cancelled or failed.');
+  }
+}
+
+// 2. Nintondo
+// 2. Nintondo
+async function connectNintondo() {
+  // Nintondo injects window.nintondo — wait a moment for injection
+  await new Promise(r => setTimeout(r, 300));
+  const nintondo = window.nintondo;
+  if (!nintondo) {
+    showNoWallet('Nintondo Wallet', 'https://chromewebstore.google.com/detail/nintondo-wallet/akkmagafhjjjjclaejjomkeccmjhdkpa');
+    return;
+  }
+  try {
+    showToast('Connecting to Nintondo...');
+    // Try provider.connect with dogeMainnet first, fallback to bellsMainnet
+    let address = null;
+    const provider = nintondo.provider || nintondo;
+    try {
+      address = await provider.connect('dogeMainnet');
+    } catch(e1) {
+      try {
+        address = await provider.connect('bellsMainnet');
+      } catch(e2) {
+        // Try getAccount if connect fails
+        try { address = await provider.getAccount(); } catch(e3) {}
+      }
+    }
+    // address might be a string or object
+    if (address && typeof address === 'object') address = address.address || address[0] || null;
+    if (address) {
+      connectedAddress = address;
+      let balance = '—';
+      try {
+        const bal = await (provider.getBalance?.() || Promise.reject());
+        balance = (parseInt(bal) / 100000000).toFixed(2);
+      } catch(e) {}
+      showDashboard(address, balance, 'Nintondo');
+      if (balance === '—') fetchBalance(address);
+      loadFEPEs(address);
+    } else {
+      showToast('Could not get address from Nintondo. Make sure Dogecoin network is selected in the wallet.');
+    }
+  } catch(e) {
+    showToast('Nintondo connection cancelled or failed.');
+    console.error('Nintondo error:', e);
+  }
+}
+
+// 3. Ordifind
+async function connectOrdifind() {
+  await new Promise(r => setTimeout(r, 300));
+  const ordifind = window.ordifind || window.oifi || window.OIFI;
+  if (!ordifind) {
+    showNoWallet('Ordifind Wallet', 'https://chromewebstore.google.com/detail/ordifind-wallet/dpcklmdombjcplafheapiblogdlgjjlb');
+    return;
+  }
+  try {
+    showToast('Connecting to Ordifind...');
+    let address = null;
+    let raw = null;
+
+    if (ordifind.connect) raw = await ordifind.connect();
+    else if (ordifind.requestAccounts) raw = await ordifind.requestAccounts();
+    else if (ordifind.getAccounts) raw = await ordifind.getAccounts();
+
+    // Extract address from whatever response we get
+    if (typeof raw === 'string') {
+      address = raw;
+    } else if (Array.isArray(raw)) {
+      address = raw[0];
+    } else if (raw && typeof raw === 'object') {
+      address = raw.address || raw.accounts?.[0] || raw[0] || null;
+      // If still object, try JSON keys
+      if (!address) {
+        const keys = Object.keys(raw);
+        for (const k of keys) {
+          if (typeof raw[k] === 'string' && raw[k].startsWith('D')) {
+            address = raw[k]; break;
+          }
+        }
+      }
+    }
+
+    if (address && typeof address === 'string' && address.startsWith('D')) {
+      connectedAddress = address;
+      showDashboard(address, '—', 'Ordifind');
+      fetchBalance(address);
+      loadFEPEs(address);
+    } else {
+      showToast('Could not retrieve Dogecoin address from Ordifind.');
+      console.log('Ordifind raw response:', raw);
+    }
+  } catch(e) {
+    showToast('Ordifind connection cancelled or failed.');
+    console.error('Ordifind error:', e);
+  }
+}
+
+// 4. Doge Labs
+async function connectDogeLabs() {
+  // Doge Labs injects window.dogeLabs or window.dogelabs
+  const dogeLabs = window.dogeLabs || window.dogelabs || window.doge_labs;
+  if (!dogeLabs) {
+    showNoWallet('Doge Labs Wallet', 'https://chromewebstore.google.com/detail/doge-labs-wallet/jiepnaheligkibgcjgjepjfppgbcghmp');
+    return;
+  }
+  try {
+    showToast('Connecting to Doge Labs...');
+    let address = null;
+    if (dogeLabs.connect) {
+      const res = await dogeLabs.connect();
+      address = res?.address || res;
+    } else if (dogeLabs.requestAccounts) {
+      const accounts = await dogeLabs.requestAccounts();
+      address = accounts?.[0];
+    } else if (dogeLabs.getAccounts) {
+      const accounts = await dogeLabs.getAccounts();
+      address = accounts?.[0];
+    }
+    if (address) {
+      connectedAddress = address;
+      showDashboard(address, '—', 'Doge Labs');
+      fetchBalance(address);
+      loadFEPEs(address);
+    } else {
+      showToast('Could not retrieve address from Doge Labs.');
+    }
+  } catch(e) {
+    showToast('Doge Labs connection cancelled or failed.');
   }
 }
 
@@ -607,32 +768,47 @@ async function loadManualAddress() {
     return;
   }
   connectedAddress = addr;
-  showDashboard(addr, '—');
+  showDashboard(addr, '—', 'Manual');
   loadFEPEs(addr);
-  // Try to get balance from public API
   fetchBalance(addr);
 }
 
-// Fetch balance from public Dogecoin API
+// Fetch balance from public Dogecoin APIs with fallbacks
 async function fetchBalance(address) {
-  try {
-    const res = await fetch(`https://dogechain.info/api/v1/address/balance/${address}`);
-    const data = await res.json();
-    if (data.success) {
-      const bal = parseFloat(data.balance).toLocaleString(undefined, {maximumFractionDigits:2});
-      document.getElementById('dogeBalance').textContent = bal + ' Ð';
-      document.getElementById('dogeBalanceSub').textContent = 'Dogecoin';
-    }
-  } catch(e) {
-    document.getElementById('dogeBalance').textContent = 'N/A';
-    document.getElementById('dogeBalanceSub').textContent = 'Could not fetch';
+  const apis = [
+    {
+      url: `https://api.blockcypher.com/v1/doge/main/addrs/${address}/balance`,
+      parse: d => (d.balance / 100000000).toLocaleString(undefined, {maximumFractionDigits:2})
+    },
+    {
+      url: `https://dogechain.info/api/v1/address/balance/${address}`,
+      parse: d => d.success ? parseFloat(d.balance).toLocaleString(undefined, {maximumFractionDigits:2}) : null
+    },
+  ];
+  for (const api of apis) {
+    try {
+      const res = await fetch(api.url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const bal = api.parse(data);
+      if (bal !== null && bal !== undefined) {
+        document.getElementById('dogeBalance').textContent = bal + ' Ð';
+        document.getElementById('dogeBalanceSub').textContent = 'Dogecoin';
+        return;
+      }
+    } catch(e) { continue; }
   }
+  document.getElementById('dogeBalance').textContent = 'N/A';
+  document.getElementById('dogeBalanceSub').textContent = 'Could not fetch';
 }
 
-function showDashboard(address, balance) {
+function showDashboard(address, balance, walletName) {
   document.getElementById('connectScreen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('addressDisplay').textContent = address;
+  // Show wallet name in subtitle if element exists
+  const walletNameEl = document.getElementById('connectedWalletName');
+  if (walletNameEl) walletNameEl.textContent = walletName || '';
 
   if (balance !== '—') {
     const bal = parseFloat(balance).toLocaleString(undefined, {maximumFractionDigits:2});
@@ -839,14 +1015,20 @@ function copyAddress() {
 }
 
 async function disconnect() {
+  // Try disconnecting each wallet gracefully
   if (isMyDogeConnected && myDogeMask) {
     try { await myDogeMask.disconnect(); } catch(e) {}
+  }
+  if (window.nintondo?.provider?.disconnect) {
+    try { await window.nintondo.provider.disconnect(); } catch(e) {}
   }
   connectedAddress = null;
   isMyDogeConnected = false;
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('connectScreen').style.display = 'flex';
   document.getElementById('fepeGrid').innerHTML = '';
+  document.getElementById('noWalletMsg').style.display = 'none';
+  document.getElementById('noWalletMsg').innerHTML = '';
   showToast('Wallet disconnected.');
 }
 </script>

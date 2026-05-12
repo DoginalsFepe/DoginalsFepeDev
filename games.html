@@ -180,18 +180,7 @@ footer a{color:var(--gold);text-decoration:none;}
   <p>Play as your Doginals Fepe inscription. Connect wallet to use your own FEPE character!</p>
 </div>
 
-<!-- WALLET BAR -->
-<div class="wallet-bar">
-  <div id="walletStatus">
-    <p>🔗 Connect wallet to play as your own FEPE!</p>
-  </div>
-  <div class="connect-btns" id="connectBtns">
-    <button class="wbtn" onclick="connectMyDoge()">🐕 MyDoge</button>
-    <button class="wbtn" onclick="connectOrdifind()">🔍 Ordifind</button>
-    <button class="wbtn" onclick="connectDogeLabs()">🧪 Doge Labs</button>
-    <button class="wbtn" onclick="disconnectWallet()" id="disconnectBtn" style="display:none;border-color:#ff4444;color:#ff4444;">✕ Disconnect</button>
-  </div>
-</div>
+
 
 <!-- GAMES -->
 <div class="games-wrap">
@@ -264,47 +253,6 @@ footer a{color:var(--gold);text-decoration:none;}
   </div>
 </div>
 
-<!-- GAME 3: ANGRY FEPE - Full width -->
-<div class="games-wrap" style="padding-top:0;">
-  <div class="game-section" style="margin-top:0;">
-    <div class="game-header">
-      <div>
-        <div class="game-title">ANGRY <span>FEPE</span></div>
-        <div style="font-size:.75rem;color:var(--grey);">Sling your FEPE to destroy Dogecoin structures!</div>
-      </div>
-      <div style="display:flex;gap:24px;align-items:center;">
-        <div class="game-score-wrap">
-          <div class="game-score-label">Score</div>
-          <div class="game-score" id="angryScore">0</div>
-        </div>
-        <div class="game-score-wrap">
-          <div class="game-score-label">FEPEs Left</div>
-          <div class="game-score" id="angryBirds">3</div>
-        </div>
-        <div class="game-score-wrap">
-          <div class="game-score-label">Level</div>
-          <div class="game-score" id="angryLevel">1</div>
-        </div>
-      </div>
-    </div>
-    <div class="game-body">
-      <div class="game-canvas-wrap" style="max-width:800px;margin:0 auto;">
-        <canvas id="angryCanvas" width="800" height="400"></canvas>
-        <div class="game-overlay" id="angryOverlay">
-          <div class="overlay-title">ANGRY <span style="color:var(--gold)">FEPE</span></div>
-          <div class="overlay-sub">Sling your FEPE frogs to smash Dogecoin blocks!<br>Destroy all targets to advance to the next level.</div>
-          <button class="play-btn" onclick="startAngry()">▶ LAUNCH FEPE!</button>
-        </div>
-      </div>
-      <div class="game-controls" style="margin-top:12px;">
-        <span class="ctrl-badge">🖱️ Drag slingshot to aim</span>
-        <span class="ctrl-badge">🖱️ Release to launch</span>
-        <span class="ctrl-badge">📱 Touch & drag on mobile</span>
-      </div>
-      <div class="best-score">Best: <span id="angryBest">0</span></div>
-    </div>
-  </div>
-</div>
 
 <footer>
   <p>© 2023 DoginalsFepe · <a href="index.html">Home</a> · <a href="https://dogecoin.com" target="_blank">Dogecoin</a> · Not financial advice</p>
@@ -1395,6 +1343,6 @@ function drawFepeBird(x, y, r, alpha=1) {
 
 
 </script>
-<script data-goatcounter="https://doginalsfepe.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
 </body>
 </html>
